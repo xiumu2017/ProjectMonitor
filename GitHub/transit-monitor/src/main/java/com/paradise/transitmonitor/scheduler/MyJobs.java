@@ -1,10 +1,12 @@
 package com.paradise.transitmonitor.scheduler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -16,16 +18,20 @@ import java.util.List;
  * @author dzhang
  */
 @Service
+@Slf4j
 public class MyJobs implements InitializingBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(MyJobs.class);
-
+    @Value("${jobFlag}")
+    private String flag;
     @Resource
     private MyJobService myJobService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        logger.info(">>> afterPropertiesSet");
+        if (!"1".equals(flag)) {
+            return;
+        }
+        log.info(">>> afterPropertiesSet");
 
         List<QuartzInfo> quartzInfoList = myJobService.selectEnableJobList();
         if (!quartzInfoList.isEmpty()) {
@@ -33,7 +39,7 @@ public class MyJobs implements InitializingBean {
                 initSchedule(quartzInfo);
             }
         } else {
-            logger.info("no enable job ...");
+            log.info("no enable job ...");
             QuartzInfo info = new QuartzInfo();
             info.setCron("0 1/10 * * * ?");
             info.setIdentityGroup("Transit");
@@ -45,7 +51,7 @@ public class MyJobs implements InitializingBean {
 
     @SuppressWarnings("unchecked")
     private static void initSchedule(QuartzInfo quartzInfo) throws SchedulerException {
-        logger.info("job :" + quartzInfo.toString() + " initializing ...");
+        log.info("job :" + quartzInfo.toString() + " initializing ...");
         Scheduler scheduler = new StdSchedulerFactory().getScheduler();
         scheduler.start();
 
@@ -56,8 +62,8 @@ public class MyJobs implements InitializingBean {
                     .withDescription(quartzInfo.getDescription())
                     .build();
         } catch (ClassNotFoundException e) {
-            logger.error("job :" + quartzInfo.getDescription() + " initialize fail!");
-            logger.error(e.getLocalizedMessage(), e);
+            log.error("job :" + quartzInfo.getDescription() + " initialize fail!");
+            log.error(e.getLocalizedMessage(), e);
             return;
         }
 
@@ -69,6 +75,6 @@ public class MyJobs implements InitializingBean {
                 .withSchedule(scheduleBuilder).build();
         scheduler.scheduleJob(jobDetail, trigger);
 
-        logger.info("job initialize success!");
+        log.info("job initialize success!");
     }
 }

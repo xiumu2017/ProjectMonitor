@@ -1,14 +1,10 @@
 package com.paradise.oracle;
 
 import com.paradise.project.ProjectConstant;
-import com.paradise.project.SysConfigOracle;
+import com.paradise.project.domain.SysConfigOracle;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.Calendar;
 import java.util.HashMap;

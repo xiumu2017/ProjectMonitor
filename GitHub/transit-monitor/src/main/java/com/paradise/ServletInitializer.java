@@ -1,4 +1,4 @@
-package com.paradise.transitmonitor;
+package com.paradise;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;

@@ -1,4 +1,4 @@
-package com.paradise.project;
+package com.paradise.project.domain;
 
 import lombok.Data;
 
