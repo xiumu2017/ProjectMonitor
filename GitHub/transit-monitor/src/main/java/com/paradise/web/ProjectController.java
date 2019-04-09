@@ -110,14 +110,48 @@ public class ProjectController {
         return projectInfoService.saveServer(serverInfo.getProjectId(), serverInfo);
     }
 
+    /**
+     * 根据id初始化服务器信息
+     *
+     * @param id server_id
+     * @return 服务器信息
+     */
     @RequestMapping("/server")
     public R getServerInfo(String id) {
         return R.success(projectInfoService.getServerInfo(id));
     }
 
+    /**
+     * 初始化化数据库信息
+     *
+     * @param id db_id
+     * @return 数据库信息
+     */
     @RequestMapping("/db")
     public R getDbInfo(String id) {
         return R.success(projectInfoService.getDbInfo(id));
+    }
+
+    /**
+     * 数据库连接测试
+     *
+     * @param info 数据库信息
+     * @return R
+     */
+    @RequestMapping("/dbConnectTest")
+    public R dbConnectTest(DbInfo info) {
+        return projectInfoService.dbConnectTest(info);
+    }
+
+
+    /**
+     * 服务器连接测试
+     * @param info 服务器信息
+     * @return R
+     */
+    @RequestMapping("/serverConnectTest")
+    public R serverConnectTest(ServerInfo info) {
+        return projectInfoService.serverConnectTest(info);
     }
 
 

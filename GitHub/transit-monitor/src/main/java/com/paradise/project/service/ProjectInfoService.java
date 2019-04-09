@@ -1,11 +1,13 @@
 package com.paradise.project.service;
 
+import com.paradise.oracle.QueryForTransit;
 import com.paradise.project.domain.DbInfo;
 import com.paradise.project.domain.ProjectInfo;
 import com.paradise.project.domain.ServerInfo;
 import com.paradise.project.mapper.DbInfoMapper;
 import com.paradise.project.mapper.ProjectInfoMapper;
 import com.paradise.project.mapper.ServerInfoMapper;
+import com.paradise.ssh.ConnectLinuxCommand;
 import com.paradise.web.R;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -49,6 +51,12 @@ public class ProjectInfoService {
         return projectInfoMapper.getAllEnableProjects(info);
     }
 
+    /**
+     * 新增 or 更新 项目信息
+     *
+     * @param info 项目信息
+     * @return 处理结果
+     */
     @Transactional(rollbackFor = Exception.class)
     public int insert(ProjectInfo info) {
         if (StringUtils.isNotBlank(info.getId())) {
@@ -58,6 +66,13 @@ public class ProjectInfoService {
         }
     }
 
+    /**
+     * 修改项目 是否启用状态
+     *
+     * @param id     项目id
+     * @param enable 原始状态
+     * @return 修改结果
+     */
     @Transactional(rollbackFor = Exception.class)
     public R changeEnable(String id, String enable) {
         if (ProjectInfo.PROJECT_ENABLE.ENABLE.equals(enable)) {
@@ -72,6 +87,12 @@ public class ProjectInfoService {
         }
     }
 
+    /**
+     * 保存数据库信息
+     *
+     * @param dbInfo 数据库信息
+     * @return 保存结果
+     */
     @Transactional(rollbackFor = Exception.class)
     public R saveDb(DbInfo dbInfo) {
         if (StringUtils.isNotEmpty(dbInfo.getId())) {
@@ -87,6 +108,13 @@ public class ProjectInfoService {
         return R.error();
     }
 
+    /**
+     * 保存服务器信息
+     *
+     * @param id         project_id 项目信息id
+     * @param serverInfo 服务器信息
+     * @return 保存结果
+     */
     @Transactional(rollbackFor = Exception.class)
     public R saveServer(String id, ServerInfo serverInfo) {
         if (StringUtils.isNotEmpty(serverInfo.getId())) {
@@ -103,11 +131,61 @@ public class ProjectInfoService {
         return R.error();
     }
 
+    /**
+     * 获取服务器信息
+     *
+     * @param id server_id
+     * @return 服务器信息
+     */
     public ServerInfo getServerInfo(String id) {
         return serverInfoMapper.select(id);
     }
 
+    /**
+     * 获取 数据库信息
+     *
+     * @param id db_id
+     * @return 数据库信息
+     */
     public DbInfo getDbInfo(String id) {
         return dbInfoMapper.selectInfo(id);
+    }
+
+    /**
+     * 数据库连接测试
+     *
+     * @param info server_info
+     * @return 正常状态下返回最近一次接收到号码推送的时间 appTime
+     */
+    public R dbConnectTest(DbInfo info) {
+        try {
+            // TODO 增加后端校验逻辑
+            String lastPushTime = QueryForTransit.queryLastPushTime(info);
+            return R.success(lastPushTime);
+        } catch (Exception e) {
+            log.error(e.getLocalizedMessage(), e);
+            return R.error(e.getLocalizedMessage());
+        }
+    }
+
+    /**
+     * 服务器连接测试
+     *
+     * @param info 服务器信息
+     * @return 测试结果 - 简单认证
+     */
+    public R serverConnectTest(ServerInfo info) {
+        try {
+            // TODO 增加后端校验逻辑
+            // TODO 增加 多种校验以及结果处理
+            if (ConnectLinuxCommand.login(info)) {
+                return R.success(ConnectLinuxCommand.execute("date"));
+            } else {
+                return R.error();
+            }
+        } catch (Exception e) {
+            log.error(e.getLocalizedMessage(), e);
+            return R.error(e.getLocalizedMessage());
+        }
     }
 }

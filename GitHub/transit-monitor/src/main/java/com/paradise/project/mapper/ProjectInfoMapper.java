@@ -29,8 +29,8 @@ public interface ProjectInfoMapper {
      * @param info 项目信息
      * @return 返回结果
      */
-    @Insert("insert into tm_project (id,name,city,url,user_name,password,remark,mas_type)" +
-            " values (UUID(),#{name},#{city},#{url},#{userName},#{password},#{remark},#{masType})")
+    @Insert("insert into tm_project (id,name,city,url,user_name,password,remark,mas_type,importance)" +
+            " values (UUID(),#{name},#{city},#{url},#{userName},#{password},#{remark},#{masType},#{importance})")
     int insert(ProjectInfo info);
 
     /**
@@ -40,7 +40,7 @@ public interface ProjectInfoMapper {
      * @return 更新结果
      */
     @Update("update tm_project set city=#{city}, name=#{name}, url=#{url}, user_name=#{userName}," +
-            "password =#{password}, remark=#{remark}, mas_type=#{masType} where id = #{id}")
+            "password =#{password}, remark=#{remark}, mas_type=#{masType},importance=#{importance} where id = #{id}")
     int update(ProjectInfo info);
 
     /**

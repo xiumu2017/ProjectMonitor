@@ -7,6 +7,7 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -50,6 +51,8 @@ public class MonitorForTransit implements Job {
 
         } catch (ParseException e) {
             logger.error(e.getLocalizedMessage(), e);
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
         // 查询结果
         // 校验逻辑

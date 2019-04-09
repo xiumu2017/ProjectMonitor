@@ -1,6 +1,7 @@
 package com.paradise.oracle;
 
 import com.paradise.project.ProjectConstant;
+import com.paradise.project.domain.DbInfo;
 import com.paradise.project.domain.SysConfigOracle;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,45 +20,40 @@ import java.util.Map;
 public class QueryForTransit {
 
 
-    private static Connection getConnection(OracleInfo oracleInfo) throws ClassNotFoundException, SQLException {
+    private static Connection getConnection(DbInfo dbInfo) throws ClassNotFoundException, SQLException {
         Class.forName("oracle.jdbc.driver.OracleDriver");
-        return DriverManager.getConnection(oracleInfo.getUrl(), oracleInfo.getUser(), oracleInfo.getPassword());
+        return DriverManager.getConnection(dbInfo.getUrl(), dbInfo.getUserName(), dbInfo.getPassword());
     }
 
 
     /**
      * 查询过境前台数据库最近一条号码数据的时间 appTime
      *
-     * @param oracleInfo 数据库信息
+     * @param dbInfo 数据库信息
      * @return String appTime
      */
-    public static String queryLastPushTime(OracleInfo oracleInfo) {
+    public static String queryLastPushTime(DbInfo dbInfo) throws SQLException, ClassNotFoundException {
         String res = null;
-        if (null == oracleInfo) {
+        if (null == dbInfo) {
             return null;
         }
-        try {
-            Connection connection = getConnection(oracleInfo);
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(SqlConstant.QUERY_LAST_PUSH_TIME);
-            while (resultSet.next()) {
-                res = resultSet.getString(1);
-            }
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-            log.error(e.getLocalizedMessage(), e);
+        Connection connection = getConnection(dbInfo);
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(SqlConstant.QUERY_LAST_PUSH_TIME);
+        while (resultSet.next()) {
+            res = resultSet.getString(1);
         }
         return res;
     }
 
     /**
-     * @param oracleInfo
+     * @param dbInfo
      */
-    public static Map<String, Object> transitCheck(OracleInfo oracleInfo) {
+    public static Map<String, Object> transitCheck(DbInfo dbInfo) {
         Map<String, Object> resultMap = new HashMap<>(16);
         try {
             // 建立数据库连接
-            Connection connection = getConnection(oracleInfo);
+            Connection connection = getConnection(dbInfo);
             Statement statement = connection.createStatement();
 
             // step1: 查询系统配置表信息
@@ -153,10 +149,10 @@ public class QueryForTransit {
         return resultMap;
     }
 
-    public static String queryCount(OracleInfo oracleInfo) {
+    public static String queryCount(DbInfo dbInfo) {
         String res = null;
         try {
-            Connection connection = getConnection(oracleInfo);
+            Connection connection = getConnection(dbInfo);
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(SqlConstant.QUERY_COUNT_MOBILE);
             while (resultSet.next()) {
@@ -181,7 +177,7 @@ public class QueryForTransit {
     }
 
     public static void main(String[] args) {
-        QueryForTransit.transitCheck(new OracleInfo("jdbc:oracle:thin:@192.168.1.234:1521:orcl", "gjptqt", "gjptqt"));
+//        QueryForTransit.transitCheck(new DbInfo("jdbc:oracle:thin:@192.168.1.234:1521:orcl", "gjptqt", "gjptqt"));
     }
 
     private static Object getObjectFromResultSet(ResultSet resultSet, Class clazz) throws SQLException, IllegalAccessException, InstantiationException {

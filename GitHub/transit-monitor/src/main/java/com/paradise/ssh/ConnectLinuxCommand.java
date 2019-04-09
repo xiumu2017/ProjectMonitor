@@ -3,6 +3,7 @@ package com.paradise.ssh;
 import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.Session;
 import ch.ethz.ssh2.StreamGobbler;
+import com.paradise.project.domain.ServerInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,21 +24,16 @@ public class ConnectLinuxCommand {
 
     private static Connection connection;
 
-    public static boolean login(RemoteConnect remoteConnect) {
-        boolean flag = false;
-        try {
-            connection = new Connection(remoteConnect.getIp());
-            connection.connect();
-            flag = connection.authenticateWithPassword(remoteConnect.getUserName(), remoteConnect.getPassword());
-            if (flag) {
-                logger.info("SSH - 认证成功！");
-            } else {
-                logger.info("认证失败！");
-                connection.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            logger.error(e.getLocalizedMessage(), e);
+    public static boolean login(ServerInfo info) throws IOException {
+        boolean flag;
+        connection = new Connection(info.getIp(), Integer.valueOf(info.getPort()));
+        connection.connect();
+        flag = connection.authenticateWithPassword(info.getUserName(), info.getPassword());
+        if (flag) {
+            logger.info("SSH - 认证成功！");
+        } else {
+            logger.info("认证失败！");
+            connection.close();
         }
         return flag;
     }
@@ -51,6 +47,7 @@ public class ConnectLinuxCommand {
             result = processStdout(session.getStdout(), DEFAULT_CHARSET);
             if (StringUtils.isBlank(result)) {
                 result = processStdout(session.getStderr(), DEFAULT_CHARSET);
+                logger.info(result);
             }
             connection.close();
             session.close();
@@ -74,15 +71,6 @@ public class ConnectLinuxCommand {
             logger.error(e.getLocalizedMessage(), e);
         }
         return buffer.toString();
-    }
-
-    public static void main(String[] args) {
-        RemoteConnect remoteConnect = new RemoteConnect("192.168.1.47", "root", "bigdata#2018");
-        ConnectLinuxCommand.login(remoteConnect);
-        String cmd = "tail -f /software/apache-tomcat-8.0.43//logs/catalina.out";
-        logger.info("command: " + cmd);
-        String res = ConnectLinuxCommand.execute(cmd);
-        logger.info(res);
     }
 
 }

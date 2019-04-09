@@ -69,6 +69,10 @@ public class R<T> {
         return new R(DEFAULT_ERROR_CODE, SERVER_ERROR);
     }
 
+    public static R error(String msg) {
+        return new R(DEFAULT_ERROR_CODE, msg);
+    }
+
     public T getData() {
         return data;
     }

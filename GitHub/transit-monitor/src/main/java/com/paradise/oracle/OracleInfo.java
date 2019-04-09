@@ -5,6 +5,7 @@ import lombok.Data;
 /**
  * @author dzhang
  */
+@Deprecated
 @Data
 public class OracleInfo {
     private String ip;
