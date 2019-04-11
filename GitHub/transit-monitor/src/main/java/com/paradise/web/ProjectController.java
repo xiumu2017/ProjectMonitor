@@ -1,5 +1,6 @@
 package com.paradise.web;
 
+import com.paradise.oracle.QueryForTransit;
 import com.paradise.project.domain.DbInfo;
 import com.paradise.project.domain.ProjectInfo;
 import com.paradise.project.domain.ServerInfo;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -146,6 +148,7 @@ public class ProjectController {
 
     /**
      * 服务器连接测试
+     *
      * @param info 服务器信息
      * @return R
      */
@@ -154,5 +157,25 @@ public class ProjectController {
         return projectInfoService.serverConnectTest(info);
     }
 
+    /**
+     * 数据库巡检
+     *
+     * @param id 项目id
+     * @return Map
+     */
+    @RequestMapping("/transitCheck")
+    public R transitCheck(String id) {
+        ProjectInfo projectInfo = projectInfoService.selectById(id);
+        ServerInfo serverInfo = projectInfoService.getServerInfo(projectInfo.getServerId());
+        DbInfo dbInfo = projectInfoService.getDbInfo(projectInfo.getDbId());
+        Map<String, Object> resultMap;
+        try {
+            resultMap = QueryForTransit.transitCheck(dbInfo);
+        } catch (SQLException | ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+            log.error(e.getLocalizedMessage(), e);
+            return R.error(e.getLocalizedMessage());
+        }
+        return R.success(resultMap);
+    }
 
 }

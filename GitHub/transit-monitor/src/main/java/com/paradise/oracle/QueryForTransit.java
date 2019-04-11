@@ -46,106 +46,79 @@ public class QueryForTransit {
         return res;
     }
 
-    /**
-     * @param dbInfo
-     */
-    public static Map<String, Object> transitCheck(DbInfo dbInfo) {
-        Map<String, Object> resultMap = new HashMap<>(16);
-        try {
-            // 建立数据库连接
-            Connection connection = getConnection(dbInfo);
-            Statement statement = connection.createStatement();
+    private static String sqlMaker(int result) {
+        StringBuilder sql = new StringBuilder(SqlConstant.QUERY_SMS_COUNT);
+        Calendar calendar = Calendar.getInstance();
+        sql.append("  t.appyear = '").append(calendar.get(Calendar.YEAR))
+                .append("' and t.appmonth = '").append(calendar.get(Calendar.MONTH) + 1)
+                .append("' and t.appday = '").append(calendar.get(Calendar.DATE))
+                .append("' and t.sendresult = '").append(result).append("'");
+        log.info(sql.toString());
+        return sql.toString();
+    }
 
-            // step1: 查询系统配置表信息
-            ResultSet sysConfigSet = statement.executeQuery(SqlConstant.QUERY_SYS_CONFIG);
-            SysConfigOracle config = getConfigFromSql(sysConfigSet);
-            resultMap.put("config", config);
-
-            // step2: 查询最近的短信推送情况
-            String lastPushTime = null;
-            ResultSet resultSet = statement.executeQuery(SqlConstant.QUERY_LAST_PUSH_TIME);
-            while (resultSet.next()) {
-                lastPushTime = resultSet.getString(1);
-            }
-            resultMap.put("lastPushTime", lastPushTime);
-
-            // step3: 查询当天的短信发送情况
-            // 查询当天的短信发送情况
-            // 发送成功，发送失败，提交成功，提交失败，超出月发送量，超出日发送量
-            Calendar calendar = Calendar.getInstance();
-            ResultSet smsSet = statement.executeQuery(SqlConstant.QUERY_SMS_COUNT
-                    .append("  t.appyear = '").append(calendar.get(Calendar.YEAR)).append("' and t.appmonth = '")
-                    .append(calendar.get(Calendar.MONTH)).append("' and t.appday = '")
-                    .append(calendar.get(Calendar.DATE)).append("'").toString());
-            int sendSuccessCount = 0;
-            int sendFailCount = 0;
-            int submitSuccessCount = 0;
-            int submitFailCount = 0;
-            int overMonthCount = 0;
-            int overDayCount = 0;
-            while (smsSet.next()) {
-                int sendResult = smsSet.getInt(1);
-                switch (sendResult) {
-                    case 0:
-                        submitFailCount++;
-                        break;
-                    case 1:
-                        submitSuccessCount++;
-                        break;
-                    case 2:
-                        sendSuccessCount++;
-                        break;
-                    case 3:
-                        sendFailCount++;
-                        break;
-                    case 5:
-                        overMonthCount++;
-                        break;
-                    case 7:
-                        overDayCount++;
-                    default:
-                        break;
-                }
-            }
-            resultMap.put("sendSuccessCount", sendSuccessCount);
-            resultMap.put("sendFailCount", sendFailCount);
-            resultMap.put("submitFailCount", submitFailCount);
-            resultMap.put("submitSuccessCount", submitSuccessCount);
-            resultMap.put("overDayCount", overDayCount);
-            resultMap.put("overMonthCount", overMonthCount);
-            // step4: 查询最近的短信发送记录
-            String lastSendTime = null;
-            ResultSet lastSendSet = statement.executeQuery(SqlConstant.QUERY_LAST_SEND_TIME);
-            while (lastSendSet.next()) {
-                lastSendTime = lastSendSet.getString(1);
-            }
-            resultMap.put("lastSendTime", lastSendTime);
-
-            // step5: 查询首页变更记录
-
-            // 判断是否开启发送 -- 一下判断改为前端，调用方自行处理
-            if (config.getSendAble().equals(ProjectConstant.SMS_SEND_ENABLE)) {
-                // 判断是否在发送区间
-                int hour = Calendar.getInstance().get(Calendar.HOUR);
-                if (config.getStartHour() <= hour && hour < config.getEndHour()) {
-                    if (config.getSendFlag().equals(ProjectConstant.SMS_LIMIT_COUNT_TRUE)) {
-                        // 判断发送量情况
-                        // 1. 是否超出月发送量
-                        if (config.getSendTotalCount() > config.getSendMonth()) {
-
-                        }
-
-                        // 2. 是否超出日发送量
-                        if (config.getSendCount() > config.getSendDay()) {
-
-                        }
-                    }
-
-                }
-            }
-        } catch (SQLException | ClassNotFoundException e) {
-            log.error(e.getLocalizedMessage(), e);
+    private static String getCount(Statement statement, int res) throws SQLException {
+        int count = 0;
+        ResultSet set = statement.executeQuery(sqlMaker(res));
+        while (set.next()) {
+            count = set.getInt(1);
         }
+        return String.valueOf(count);
+    }
+
+    /**
+     * 当天发送情况统计 - 性能太差废弃了，循环执行很慢
+     *
+     * @param resultMap 结果集Map
+     * @param statement statement
+     * @throws SQLException sqlError
+     */
+    private static void sendCountDeal(Map<String, Object> resultMap, Statement statement) throws SQLException {
+        // 查询当天的短信发送情况
+        // 发送成功，发送失败，提交成功，提交失败，超出月发送量，超出日发送量
+        log.info(">>> start count query... ");
+        resultMap.put("sendSuccessCount", getCount(statement, 2));
+        resultMap.put("sendFailCount", getCount(statement, 3));
+        resultMap.put("submitFailCount", getCount(statement, 0));
+        resultMap.put("submitSuccessCount", getCount(statement, 1));
+        resultMap.put("overDayCount", getCount(statement, 7));
+        resultMap.put("overMonthCount", getCount(statement, 5));
+    }
+
+    /**
+     * 过境oracle 巡检核心方法
+     *
+     * @param dbInfo oracle success
+     */
+    public static Map<String, Object> transitCheck(DbInfo dbInfo) throws SQLException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+        Map<String, Object> resultMap = new HashMap<>(16);
+        // 建立数据库连接
+        Connection connection = getConnection(dbInfo);
+        Statement statement = connection.createStatement();
+        // step1: 查询系统配置表信息
+        ResultSet sysConfigSet = statement.executeQuery(SqlConstant.QUERY_SYS_CONFIG);
+        SysConfigOracle config = getConfigFromSql(sysConfigSet);
+        resultMap.put("config", config);
+        // step2: 查询最近的短信推送情况
+        String lastPushTime = null;
+        ResultSet resultSet = statement.executeQuery(SqlConstant.QUERY_LAST_PUSH_TIME);
+        while (resultSet.next()) {
+            lastPushTime = resultSet.getString(1);
+        }
+        resultMap.put("lastPushTime", lastPushTime);
+        // step3: 查询当天的短信发送情况
+        sendCountDeal(resultMap, statement);
+        // step4: 查询最近的短信发送记录
+        String lastSendTime = null;
+        ResultSet lastSendSet = statement.executeQuery(SqlConstant.QUERY_LAST_SEND_TIME);
+        while (lastSendSet.next()) {
+            lastSendTime = lastSendSet.getString(1);
+        }
+        resultMap.put("lastSendTime", lastSendTime);
+        // step5: 查询首页变更记录
+
+        connection.close();
+        log.info("query complete...");
         return resultMap;
     }
 
@@ -165,19 +138,11 @@ public class QueryForTransit {
         return res;
     }
 
-    private static SysConfigOracle getConfigFromSql(ResultSet resultSet) throws SQLException {
+    private static SysConfigOracle getConfigFromSql(ResultSet resultSet) throws SQLException, InstantiationException, IllegalAccessException {
         SysConfigOracle configOracle = null;
-        try {
-            configOracle = (SysConfigOracle) getObjectFromResultSet(resultSet, SysConfigOracle.class);
-            log.info(configOracle.toString());
-        } catch (IllegalAccessException | InstantiationException e) {
-            log.error(e.getLocalizedMessage(), e);
-        }
+        configOracle = (SysConfigOracle) getObjectFromResultSet(resultSet, SysConfigOracle.class);
+        log.info(configOracle.toString());
         return configOracle;
-    }
-
-    public static void main(String[] args) {
-//        QueryForTransit.transitCheck(new DbInfo("jdbc:oracle:thin:@192.168.1.234:1521:orcl", "gjptqt", "gjptqt"));
     }
 
     private static Object getObjectFromResultSet(ResultSet resultSet, Class clazz) throws SQLException, IllegalAccessException, InstantiationException {
@@ -196,16 +161,12 @@ public class QueryForTransit {
                 for (Field field : fields) {
                     // TODO 增加驼峰法等特殊格式的处理
                     if (field.getName().equalsIgnoreCase(metaData.getColumnName(i))) {
-                        boolean isAccessible = field.isAccessible();
                         field.setAccessible(true);
-                        Object value = resultSet.getObject(i);
-                        log.info(value.getClass().getName());
                         if ("java.lang.String".equals(field.getType().getName())) {
                             field.set(obj, resultSet.getString(i));
                         } else if ("java.lang.Integer".equals(field.getType().getName())) {
                             field.set(obj, resultSet.getInt(i));
                         }
-
                         field.setAccessible(false);
                     }
                 }

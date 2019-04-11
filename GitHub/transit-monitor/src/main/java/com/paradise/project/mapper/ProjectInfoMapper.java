@@ -72,4 +72,13 @@ public interface ProjectInfoMapper {
      */
     @Update("update tm_project set server_id=#{serverInfoId} where id = #{id}")
     int updateServerId(String id, String serverInfoId);
+
+    /**
+     * 查询
+     *
+     * @param id 项目id
+     * @return 项目信息
+     */
+    @Select("select * from tm_project where id=#{id}")
+    ProjectInfo select(String id);
 }

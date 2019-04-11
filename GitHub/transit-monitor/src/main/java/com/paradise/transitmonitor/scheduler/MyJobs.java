@@ -44,7 +44,7 @@ public class MyJobs implements InitializingBean {
             info.setCron("0 1/10 * * * ?");
             info.setIdentityGroup("Transit");
             info.setIdentityName("Monitor");
-            info.setJobClassName("com.paradise.transitmonitor.scheduler.MonitorForTransit");
+            info.setJobClassName("com.paradise.transitmonitor.scheduler.MonitorForTransitByWeb");
             initSchedule(info);
         }
     }

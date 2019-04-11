@@ -31,6 +31,51 @@ public class ProjectInfo extends BaseDomain {
     private String status;
     private String remark;
 
+    public enum Status {
+        /**
+         * 正常
+         */
+        NORMAL(1, "正常"),
+        /**
+         * 异常
+         */
+        ABNORMAL(0, "异常"),
+        /**
+         * 服务无法连接
+         */
+        DISCONNECT(-1, "服务无法连接");
+        /**
+         * 编码
+         */
+        private Integer code;
+        /**
+         * 显示名称
+         */
+        private String name;
+
+        Status(Integer code, String name) {
+            this.code = code;
+            this.name = name;
+        }
+
+        public Integer getCode() {
+            return code;
+        }
+
+        public void setCode(Integer code) {
+            this.code = code;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
+
     /**
      * Mas类型 - 枚举
      */

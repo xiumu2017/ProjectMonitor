@@ -4,7 +4,9 @@ import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.Session;
 import ch.ethz.ssh2.StreamGobbler;
 import com.paradise.project.domain.ServerInfo;
+import org.apache.commons.lang3.CharSet;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tomcat.util.digester.DocumentProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,20 +42,19 @@ public class ConnectLinuxCommand {
 
     public static String execute(String cmd) {
         String result = "";
-
         try {
             Session session = connection.openSession();
             session.execCommand(cmd);
             result = processStdout(session.getStdout(), DEFAULT_CHARSET);
             if (StringUtils.isBlank(result)) {
                 result = processStdout(session.getStderr(), DEFAULT_CHARSET);
-                logger.info(result);
             }
             connection.close();
             session.close();
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage(), e);
         }
+        logger.info(result);
         return result;
     }
 

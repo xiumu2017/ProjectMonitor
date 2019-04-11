@@ -175,6 +175,7 @@ public class ProjectInfoService {
      * @return 测试结果 - 简单认证
      */
     public R serverConnectTest(ServerInfo info) {
+        log.info(info.toString());
         try {
             // TODO 增加后端校验逻辑
             // TODO 增加 多种校验以及结果处理
@@ -187,5 +188,15 @@ public class ProjectInfoService {
             log.error(e.getLocalizedMessage(), e);
             return R.error(e.getLocalizedMessage());
         }
+    }
+
+    /**
+     * 项目信息查询
+     *
+     * @param id 项目id
+     * @return 项目信息
+     */
+    public ProjectInfo selectById(String id) {
+        return projectInfoMapper.select(id);
     }
 }

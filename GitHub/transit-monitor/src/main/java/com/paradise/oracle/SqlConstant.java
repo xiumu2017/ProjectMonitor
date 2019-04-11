@@ -36,5 +36,5 @@ class SqlConstant {
 
     static final String QUERY_COUNT_MOBILE = "";
 
-    static final StringBuilder QUERY_SMS_COUNT = new StringBuilder("select t.sendresult from TBL_SMS_SENDED_OPENMAS t where ");
+    static final StringBuilder QUERY_SMS_COUNT = new StringBuilder("select count(*) from TBL_SMS_SENDED_OPENMAS t where ");
 }
