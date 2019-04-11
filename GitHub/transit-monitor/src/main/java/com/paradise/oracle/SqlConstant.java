@@ -3,6 +3,11 @@ package com.paradise.oracle;
 class SqlConstant {
 
     /**
+     * 查询数据库时间
+     */
+    static final String QUERY_SYSDATE = "select sysdate from dual";
+
+    /**
      * 查询系统配置表
      */
     static final String QUERY_SYS_CONFIG = "select t.id,\n" +

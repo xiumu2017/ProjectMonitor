@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.paradise.monitor.MonitorResult;
+import com.paradise.monitor.MR;
 import com.paradise.project.domain.ProjectInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
@@ -50,49 +50,46 @@ public class MonitorForTransitByWeb {
     public static void check(ProjectInfo projectInfo) {
         long start = System.currentTimeMillis();
         //检查服务是否正常
-        if (!webServerCheck(projectInfo).getCode().equals(MonitorResult.Result_Code.NORMAL)) {
+        if (!webServerCheck(projectInfo).getCode().equals(MR.Result_Code.NORMAL)) {
             return;
         }
         //登录 获取首页信息
-        if (!doLogin(projectInfo, start)) {
+        if (doLogin(projectInfo).getCode().equals(MR.Result_Code.NORMAL)) {
             return;
         }
         //切换服务地址
         String serverUrl = projectInfo.getUrl();
         serverUrl = serverUrl.substring(0, serverUrl.lastIndexOf("/"));
         projectInfo.setUrl(serverUrl);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        String today = sdf.format(new Date());
         //检查当天记录
-        checkSmsStatus(client, projectInfo, today, start);
+        checkSmsStatus(projectInfo);
     }
 
-    public static MonitorResult webServerCheck(ProjectInfo projectInfo) {
+    public static MR webServerCheck(ProjectInfo projectInfo) {
         HttpGet get = new HttpGet(projectInfo.getUrl());
         HttpResponse response = null;
         try {
             response = client.execute(get);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                return MonitorResult.success();
+                return MR.success();
             }
         } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
-            return MonitorResult.error(MonitorResult.Result_Code.INACCESSIBLE, "登录服务异常：" + e.getLocalizedMessage());
+            return MR.error(MR.Result_Code.INACCESSIBLE, "登录服务异常：" + e.getLocalizedMessage());
         } finally {
             get.abort();
         }
-        return MonitorResult.error(MonitorResult.Result_Code.INACCESSIBLE, "登录服务异常：" + response.getStatusLine().getStatusCode());
+        return MR.error(MR.Result_Code.INACCESSIBLE, "登录服务异常：" + response.getStatusLine().getStatusCode());
     }
 
     /**
      * 登录
      *
      * @param project 项目信息
-     * @param start   调用开始时间
      * @return boolean
      * @author jie_huang@woyitech.com
      */
-    private static boolean doLogin(ProjectInfo project, long start) {
+    public static MR doLogin(ProjectInfo project) {
         HttpPost post = new HttpPost(project.getUrl());
         try {
             // 参数构建
@@ -105,35 +102,32 @@ public class MonitorForTransitByWeb {
             post.setEntity(formEntity);
             HttpResponse response = MonitorForTransitByWeb.client.execute(post);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                MonitorResult.error(MonitorResult.Result_Code.LOGIN_ERROR, "登录失败：" + response.getStatusLine().getStatusCode() + " > " + getEntityContent(response));
-                return false;
+                return MR.error(MR.Result_Code.LOGIN_ERROR, "登录失败：" + response.getStatusLine().getStatusCode() + " > " + getEntityContent(response));
             }
             String result = getEntityContent(response);
             //验证登录结果
             if (!result.contains("window.location.href = \"/")) {
-                MonitorResult.error(MonitorResult.Result_Code.LOGIN_ERROR, "登录失败：" + "登录失败,用户名或密码错误");
-                return false;
+                return MR.error(MR.Result_Code.LOGIN_ERROR, "登录失败：" + "登录失败,用户名或密码错误");
             }
-            return true;
+            return MR.success("Login Success");
         } catch (Exception e) {
             log.error("过境平台巡检出错: " + e.getLocalizedMessage(), e);
-            MonitorResult.error(MonitorResult.Result_Code.LOGIN_ERROR, "过境平台巡检失败：" + e.getLocalizedMessage());
+            return MR.error(MR.Result_Code.LOGIN_ERROR, "过境平台巡检失败：" + e.getLocalizedMessage());
         } finally {
             post.abort();
         }
-        return false;
     }
 
     /**
      * 检查是否有记录
      *
-     * @param client  http客户端
      * @param project 项目信息
-     * @param start   调用起始时间
      * @return boolean
      * @author jie_huang@woyitech.com
      */
-    private static boolean checkSmsStatus(HttpClient client, ProjectInfo project, String today, long start) {
+    public static MR checkSmsStatus(ProjectInfo project) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String today = sdf.format(new Date());
         // TODO 首先获取首页信息，判断是否开启发送以及发送量
         HttpGet get = new HttpGet(getSmsDataUrl(project.getUrl(), today, 1, ""));
         try {
@@ -144,14 +138,13 @@ public class MonitorForTransitByWeb {
             long totalCount = json.getLongValue("totalCount");
             // 今日无数据
             if (totalCount == 0) {
-                MonitorResult.error(MonitorResult.Result_Code.NO_SMS_SEND, "未检测到短信发送记录");
-                return false;
+                return MR.error(MR.Result_Code.NO_SMS_SEND, "未检测到短信发送记录");
             }
-            return true;
+            return MR.success("当天发送量：" + totalCount);
         } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
+            return MR.error(MR.Result_Code.ERROR, e.getLocalizedMessage());
         }
-        return false;
     }
 
     /**

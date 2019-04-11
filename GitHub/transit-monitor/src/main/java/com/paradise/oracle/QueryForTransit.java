@@ -25,23 +25,18 @@ public class QueryForTransit {
         return DriverManager.getConnection(dbInfo.getUrl(), dbInfo.getUserName(), dbInfo.getPassword());
     }
 
-
-    /**
-     * 查询过境前台数据库最近一条号码数据的时间 appTime
-     *
-     * @param dbInfo 数据库信息
-     * @return String appTime
-     */
-    public static String queryLastPushTime(DbInfo dbInfo) throws SQLException, ClassNotFoundException {
+    public static String checkAccessible(DbInfo dbInfo) throws SQLException, ClassNotFoundException {
         String res = null;
         if (null == dbInfo) {
             return null;
         }
         Connection connection = getConnection(dbInfo);
         Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery(SqlConstant.QUERY_LAST_PUSH_TIME);
+        ResultSet resultSet = statement.executeQuery(SqlConstant.QUERY_SYSDATE);
         while (resultSet.next()) {
             res = resultSet.getString(1);
+            Date date = resultSet.getDate(1);
+            log.info(date.toString());
         }
         return res;
     }

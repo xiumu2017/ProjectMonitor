@@ -1,5 +1,7 @@
 package com.paradise.web;
 
+import com.paradise.monitor.MR;
+import com.paradise.monitor.utils.MonitorForTransitByWeb;
 import com.paradise.oracle.QueryForTransit;
 import com.paradise.project.domain.DbInfo;
 import com.paradise.project.domain.ProjectInfo;
@@ -52,6 +54,22 @@ public class ProjectController {
         List<Map<String, String>> list = new ArrayList<>();
         Map<String, String> map;
         for (ProjectInfo.MAS_TYPE type : ProjectInfo.MAS_TYPE.values()) {
+            map = new HashMap<>(2);
+            map.put("code", type.getCode());
+            map.put("name", type.getName());
+            list.add(map);
+        }
+        return R.success(list);
+    }
+
+    /**
+     * @return 返回项目类型列表
+     */
+    @RequestMapping("/projectTypeList")
+    public R projectTypeList() {
+        List<Map<String, String>> list = new ArrayList<>();
+        Map<String, String> map;
+        for (ProjectInfo.Type type : ProjectInfo.Type.values()) {
             map = new HashMap<>(2);
             map.put("code", type.getCode());
             map.put("name", type.getName());
@@ -176,6 +194,24 @@ public class ProjectController {
             return R.error(e.getLocalizedMessage());
         }
         return R.success(resultMap);
+    }
+
+    /**
+     * web登录测试
+     *
+     * @param info 项目信息
+     * @return R
+     */
+    @RequestMapping("/webLoginCheck")
+    public R webLoginCheck(ProjectInfo info) {
+        MR result = MonitorForTransitByWeb.webServerCheck(info);
+        if (result.getCode().equals(MR.Result_Code.NORMAL)) {
+            MR monitorResult = MonitorForTransitByWeb.doLogin(info);
+            if (monitorResult.getCode().equals(MR.Result_Code.NORMAL)) {
+                return R.success(monitorResult.getName());
+            }
+        }
+        return R.error(result.getName());
     }
 
 }

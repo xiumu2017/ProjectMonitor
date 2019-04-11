@@ -35,7 +35,7 @@ public class MonitorForTransit implements Job {
 
         // 连接巡检项目数据库
         try {
-            String lastTime = QueryForTransit.queryLastPushTime(null);
+            String lastTime = QueryForTransit.checkAccessible(null);
             logger.info("[ProjectName: 九华山文明燃香]  最近一次接收到后台号码推送时间：" + lastTime);
             Date lastDate = simpleDateFormat.parse(lastTime);
             if (Calendar.getInstance().getTimeInMillis() - lastDate.getTime() > WARNING_LEVEL) {

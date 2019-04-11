@@ -160,8 +160,8 @@ public class ProjectInfoService {
     public R dbConnectTest(DbInfo info) {
         try {
             // TODO 增加后端校验逻辑
-            String lastPushTime = QueryForTransit.queryLastPushTime(info);
-            return R.success(lastPushTime);
+            String sysdate = QueryForTransit.checkAccessible(info);
+            return R.success(sysdate);
         } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
             return R.error(e.getLocalizedMessage());

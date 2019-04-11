@@ -16,7 +16,7 @@ public class ProjectInfo extends BaseDomain {
 
     private String id;
     private String name;
-    private String province;
+    private String type;
     private String city;
     private String url;
     private String userName;
@@ -30,6 +30,42 @@ public class ProjectInfo extends BaseDomain {
     private String enable;
     private String status;
     private String remark;
+
+    public enum Type {
+        /**
+         *
+         */
+        Transit("1", "过境平台"),
+        Mas("2", "Mas项目"),
+        Hospital("3", "卫计委"),
+        OTHER("4", "其它"),
+        ;
+
+        Type(String code, String name) {
+            this.code = code;
+            this.name = name;
+        }
+
+        private String code;
+        private String name;
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+    }
 
     public enum Status {
         /**
@@ -149,8 +185,8 @@ public class ProjectInfo extends BaseDomain {
      */
     public enum MONITOR_TYPE {
         ;
-        private static final String DB_ = "DB";
-        private static final String WEB_ = "WEB";
+        public static final String DB_ = "DB";
+        public static final String WEB_ = "WEB";
     }
 
     /**

@@ -8,7 +8,7 @@ import lombok.Data;
  * @author Paradise
  */
 @Data
-public class MonitorResult<T> {
+public class MR<T> {
     private String code;
     private String name;
     private T data;
@@ -19,7 +19,7 @@ public class MonitorResult<T> {
          * 一切正常
          */
         public static final String NORMAL = "0";
-        public static final String ERROR = "0";
+        public static final String ERROR = "-1";
         /**
          * 无法访问
          */
@@ -39,40 +39,40 @@ public class MonitorResult<T> {
 
     }
 
-    private MonitorResult(String code, String name, T data) {
+    private MR(String code, String name, T data) {
         this.code = code;
         this.name = name;
         this.data = data;
     }
 
-    private MonitorResult(String code, String name) {
+    private MR(String code, String name) {
         this.code = code;
         this.name = name;
     }
 
-    private MonitorResult(String code) {
+    private MR(String code) {
         this.code = code;
     }
 
-    public static MonitorResult success() {
-        return new MonitorResult(Result_Code.NORMAL);
+    public static MR success() {
+        return new MR(Result_Code.NORMAL);
     }
 
-    public static MonitorResult success(String msg) {
-        return new MonitorResult(Result_Code.NORMAL, msg);
+    public static MR success(String msg) {
+        return new MR(Result_Code.NORMAL, msg);
     }
 
     @SuppressWarnings("unchecked")
-    public static MonitorResult error(String code, String name, Object data) {
-        return new MonitorResult(code, name, data);
+    public static MR error(String code, String name, Object data) {
+        return new MR(code, name, data);
     }
 
-    public static MonitorResult error(String code) {
-        return new MonitorResult(code);
+    public static MR error(String code) {
+        return new MR(code);
     }
 
-    public static MonitorResult error(String code, String name) {
-        return new MonitorResult(code, name);
+    public static MR error(String code, String name) {
+        return new MR(code, name);
     }
 
 }
