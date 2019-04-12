@@ -24,10 +24,6 @@ public class SysConfigOracle {
      */
     private String sendAble;
     /**
-     * 发送内容
-     */
-    private String smsContent;
-    /**
      * 开始时间
      */
     private Integer startHour;
@@ -68,5 +64,8 @@ public class SysConfigOracle {
      * 年发送量限额
      */
     private Integer sendYer;
-
+    /**
+     * 发送内容
+     */
+    private String smsContent;
 }

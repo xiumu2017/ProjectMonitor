@@ -17,6 +17,18 @@ public class ProjectSQLProvider {
         if (StringUtils.isNotEmpty(info.getName())) {
             sql.append(" and name like '%").append(info.getName()).append("%'");
         }
+
+        if (StringUtils.isNotEmpty(info.getType())) {
+            sql.append(" and type = '").append(info.getType()).append("'");
+        }
         return sql.toString();
+    }
+
+    public String selectListForCheck() {
+        return "select * from tm_project where 1=1 and type = '1' and enable = '1' and city = '宣城'";
+    }
+
+    public String selectByProjectId(String id) {
+        return "select * from tm_record where project_id = '" + id + "'";
     }
 }

@@ -20,9 +20,9 @@ public interface ServerInfoMapper {
      * @return 新增结果
      */
     @SelectKey(statement = "select uuid()", keyProperty = "id", keyColumn = "id", before = true, resultType = String.class)
-    @Insert("insert into tm_server (id,ip,port,user_name,password,status,remark)" +
-            " values (#{id},#{ip},#{port},#{userName},#{password},#{status},#{remark})")
-    @Options(keyColumn = "id",keyProperty = "id",useGeneratedKeys = true)
+    @Insert("insert into tm_server (id,ip,port,user_name,password,status,enable,remark)" +
+            " values (#{id},#{ip},#{port},#{userName},#{password},#{status},#{enable},#{remark})")
+    @Options(keyColumn = "id", keyProperty = "id", useGeneratedKeys = true)
     int insert(ServerInfo serverInfo);
 
     /**
@@ -31,7 +31,8 @@ public interface ServerInfoMapper {
      * @param serverInfo 服务器信息
      * @return 更新结果
      */
-    @Update("update tm_server set ip=#{ip},port=#{port},user_name=#{userName},password=#{password},remark=#{remark},status=#{status}  where id=#{id}")
+    @Update("update tm_server set ip=#{ip},port=#{port},user_name=#{userName},password=#{password},remark=#{remark},status=#{status}," +
+            "enable=#{enable}  where id=#{id}")
     int update(ServerInfo serverInfo);
 
     /**
@@ -42,4 +43,14 @@ public interface ServerInfoMapper {
      */
     @Select("select * from tm_server where id = #{id}")
     ServerInfo select(String id);
+
+    /**
+     * 更新服务器状态
+     *
+     * @param id     服务器serverId
+     * @param status 目标状态
+     * @return 更新结果
+     */
+    @Update("update tm_server set status = #{status} where id = #{id}")
+    int updateStatus(String id, String status);
 }

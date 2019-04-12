@@ -21,7 +21,15 @@ public interface ProjectInfoMapper {
      * @return 项目信息列表
      */
     @SelectProvider(type = ProjectSQLProvider.class, method = "selectByPage")
-    public List<ProjectInfo> getAllEnableProjects(ProjectInfo projectInfo);
+    List<ProjectInfo> getAllEnableProjects(ProjectInfo projectInfo);
+
+    /**
+     * 查询for巡检
+     *
+     * @return 项目信息列表
+     */
+    @SelectProvider(type = ProjectSQLProvider.class, method = "selectListForCheck")
+    List<ProjectInfo> selectListForCheck();
 
     /**
      * 新增
@@ -29,8 +37,8 @@ public interface ProjectInfoMapper {
      * @param info 项目信息
      * @return 返回结果
      */
-    @Insert("insert into tm_project (id,name,city,url,user_name,password,remark,mas_type,importance)" +
-            " values (UUID(),#{name},#{city},#{url},#{userName},#{password},#{remark},#{masType},#{importance})")
+    @Insert("insert into tm_project (id,type,name,city,url,user_name,password,remark,mas_type,importance,monitor_type)" +
+            " values (UUID(),#{type},#{name},#{city},#{url},#{userName},#{password},#{remark},#{masType},#{importance},#{monitorType})")
     int insert(ProjectInfo info);
 
     /**
@@ -39,7 +47,7 @@ public interface ProjectInfoMapper {
      * @param info 项目信息
      * @return 更新结果
      */
-    @Update("update tm_project set city=#{city}, name=#{name}, url=#{url}, user_name=#{userName}," +
+    @Update("update tm_project set city=#{city},type=#{type}, name=#{name}, url=#{url}, user_name=#{userName},monitor_type=#{monitorType}," +
             "password =#{password}, remark=#{remark}, mas_type=#{masType},importance=#{importance} where id = #{id}")
     int update(ProjectInfo info);
 
@@ -81,4 +89,24 @@ public interface ProjectInfoMapper {
      */
     @Select("select * from tm_project where id=#{id}")
     ProjectInfo select(String id);
+
+    /**
+     * 更新SMS_STATUS
+     *
+     * @param id     项目id
+     * @param status SMS_STATUS 状态编码
+     * @return 更新结果
+     */
+    @Update("update tm_project set sms_status = #{status} where id = #{id}")
+    int updateSmsStatus(String id, String status);
+
+    /**
+     * 更新STATUS
+     *
+     * @param id     项目id
+     * @param status STATUS 状态编码
+     * @return 更新结果
+     */
+    @Update("update tm_project set status = #{status} where id = #{id}")
+    int updateStatus(String id, String status);
 }

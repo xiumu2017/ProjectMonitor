@@ -19,7 +19,7 @@ public class ServerInfo extends BaseDomain {
     private String status;
     private String name;
     private String remark;
-
+    private String enable;
     private String projectId;
 
 

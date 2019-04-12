@@ -39,7 +39,5 @@ class SqlConstant {
             "  from (select t.sendtime from TBL_SMS_SENDED_OPENMAS t order by t.sendtime desc)" +
             " where rownum <= 1";
 
-    static final String QUERY_COUNT_MOBILE = "";
-
     static final StringBuilder QUERY_SMS_COUNT = new StringBuilder("select count(*) from TBL_SMS_SENDED_OPENMAS t where ");
 }

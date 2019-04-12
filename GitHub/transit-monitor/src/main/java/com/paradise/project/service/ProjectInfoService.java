@@ -1,5 +1,6 @@
 package com.paradise.project.service;
 
+import com.paradise.monitor.MR;
 import com.paradise.oracle.QueryForTransit;
 import com.paradise.project.domain.DbInfo;
 import com.paradise.project.domain.ProjectInfo;
@@ -7,7 +8,8 @@ import com.paradise.project.domain.ServerInfo;
 import com.paradise.project.mapper.DbInfoMapper;
 import com.paradise.project.mapper.ProjectInfoMapper;
 import com.paradise.project.mapper.ServerInfoMapper;
-import com.paradise.ssh.ConnectLinuxCommand;
+import com.paradise.ssh.CmdClients;
+import com.paradise.ssh.LinuxCmdClient;
 import com.paradise.web.R;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -179,8 +181,10 @@ public class ProjectInfoService {
         try {
             // TODO 增加后端校验逻辑
             // TODO 增加 多种校验以及结果处理
-            if (ConnectLinuxCommand.login(info)) {
-                return R.success(ConnectLinuxCommand.execute("date"));
+            LinuxCmdClient client = CmdClients.createLinuxClient(info);
+            MR mr = client.login();
+            if (mr.getCode().equals(MR.Result_Code.NORMAL)) {
+                return R.success(client.date());
             } else {
                 return R.error();
             }
@@ -198,5 +202,21 @@ public class ProjectInfoService {
      */
     public ProjectInfo selectById(String id) {
         return projectInfoMapper.select(id);
+    }
+
+    public List<ProjectInfo> selectListForCheck() {
+        return projectInfoMapper.selectListForCheck();
+    }
+
+    public int updateProjectStatus(String id, String status) {
+        return projectInfoMapper.updateStatus(id, status);
+    }
+
+    public int updateProjectSmsStatus(String id, String status) {
+        return projectInfoMapper.updateSmsStatus(id, status);
+    }
+
+    public int updateServerStatus(String serverId, String code) {
+        return serverInfoMapper.updateStatus(serverId, code);
     }
 }

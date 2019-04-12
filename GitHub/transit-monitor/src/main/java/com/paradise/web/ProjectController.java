@@ -1,6 +1,7 @@
 package com.paradise.web;
 
 import com.paradise.monitor.MR;
+import com.paradise.monitor.MonitorTools;
 import com.paradise.monitor.utils.MonitorForTransitByWeb;
 import com.paradise.oracle.QueryForTransit;
 import com.paradise.project.domain.DbInfo;
@@ -32,6 +33,9 @@ public class ProjectController {
 
     @Resource
     private ProjectInfoService projectInfoService;
+
+    @Resource
+    private MonitorTools monitorTools;
 
     /**
      * 查询全部列表
@@ -210,8 +214,16 @@ public class ProjectController {
             if (monitorResult.getCode().equals(MR.Result_Code.NORMAL)) {
                 return R.success(monitorResult.getName());
             }
+            return R.error(result.getName());
         }
         return R.error(result.getName());
     }
 
+    @RequestMapping("/startCheck")
+    public R startCheck(String token) {
+        if ("paradise".equals(token)) {
+            monitorTools.run();
+        }
+        return R.success();
+    }
 }

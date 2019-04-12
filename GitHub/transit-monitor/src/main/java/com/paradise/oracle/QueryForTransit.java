@@ -1,12 +1,16 @@
 package com.paradise.oracle;
 
+import com.paradise.monitor.MR;
 import com.paradise.project.ProjectConstant;
 import com.paradise.project.domain.DbInfo;
 import com.paradise.project.domain.SysConfigOracle;
+import com.paradise.utils.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.sql.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -80,6 +84,46 @@ public class QueryForTransit {
         resultMap.put("overMonthCount", getCount(statement, 5));
     }
 
+    public static MR dbCheckForTransit(DbInfo dbInfo) throws SQLException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+        // 建立数据库连接
+        Connection connection = getConnection(dbInfo);
+        Statement statement = connection.createStatement();
+        Date oracleSysDate = null;
+        ResultSet resultSet = statement.executeQuery(SqlConstant.QUERY_SYSDATE);
+        while (resultSet.next()) {
+            oracleSysDate = resultSet.getDate(1);
+        }
+        // step1: 查询系统配置表信息
+        SysConfigOracle config = getConfigFromSql(statement);
+        if (config != null) {
+            // step2: 查询最近的短信推送情况
+            Date lastPushTime = null;
+            ResultSet resSet = statement.executeQuery(SqlConstant.QUERY_LAST_PUSH_TIME);
+            while (resultSet.next()) {
+                lastPushTime = resSet.getDate(1);
+            }
+            if (!DateUtils.dateCompare(lastPushTime, oracleSysDate, 20)) {
+                return MR.error(MR.Result_Code.SMS_PUSH_ERROR, "超过20min没有短信推送，上次短信推送时间：" + lastPushTime);
+            }
+            // 开启发送
+            if ("1".equals(config.getSendAble())) {
+                Calendar calendar = Calendar.getInstance();
+                // 已到发送时间
+                if (config.getStartHour() != null && calendar.get(Calendar.HOUR) > config.getStartHour()) {
+                    String lastSendTime = null;
+                    ResultSet lastSendSet = statement.executeQuery(SqlConstant.QUERY_LAST_SEND_TIME);
+                    while (lastSendSet.next()) {
+                        lastSendTime = lastSendSet.getString(1);
+                    }
+                    if (DateUtils.dateCompare(lastSendTime, 20L)) {
+                        return MR.error(MR.Result_Code.SMS_NO_SEND, "超过20m无短信发送，上次短信发送时间： " + lastSendTime);
+                    }
+                }
+            }
+        }
+        return MR.success();
+    }
+
     /**
      * 过境oracle 巡检核心方法
      *
@@ -91,8 +135,7 @@ public class QueryForTransit {
         Connection connection = getConnection(dbInfo);
         Statement statement = connection.createStatement();
         // step1: 查询系统配置表信息
-        ResultSet sysConfigSet = statement.executeQuery(SqlConstant.QUERY_SYS_CONFIG);
-        SysConfigOracle config = getConfigFromSql(sysConfigSet);
+        SysConfigOracle config = getConfigFromSql(statement);
         resultMap.put("config", config);
         // step2: 查询最近的短信推送情况
         String lastPushTime = null;
@@ -117,25 +160,19 @@ public class QueryForTransit {
         return resultMap;
     }
 
-    public static String queryCount(DbInfo dbInfo) {
-        String res = null;
-        try {
-            Connection connection = getConnection(dbInfo);
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(SqlConstant.QUERY_COUNT_MOBILE);
-            while (resultSet.next()) {
-                res = resultSet.getString(1);
-            }
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-            log.error(e.getLocalizedMessage(), e);
-        }
-        return res;
-    }
-
-    private static SysConfigOracle getConfigFromSql(ResultSet resultSet) throws SQLException, InstantiationException, IllegalAccessException {
-        SysConfigOracle configOracle = null;
-        configOracle = (SysConfigOracle) getObjectFromResultSet(resultSet, SysConfigOracle.class);
+    /**
+     * 查询系统配置表信息
+     *
+     * @param statement statement
+     * @return 系统配置信息
+     * @throws SQLException           sql-e
+     * @throws InstantiationException eee
+     * @throws IllegalAccessException eee
+     */
+    private static SysConfigOracle getConfigFromSql(Statement statement) throws SQLException, InstantiationException, IllegalAccessException {
+        ResultSet sysConfigSet = statement.executeQuery(SqlConstant.QUERY_SYS_CONFIG);
+        SysConfigOracle configOracle;
+        configOracle = (SysConfigOracle) getObjectFromResultSet(sysConfigSet, SysConfigOracle.class);
         log.info(configOracle.toString());
         return configOracle;
     }
@@ -169,4 +206,5 @@ public class QueryForTransit {
         }
         return obj;
     }
+
 }
