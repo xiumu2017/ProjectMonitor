@@ -40,7 +40,6 @@ public class QueryForTransit {
         while (resultSet.next()) {
             res = resultSet.getString(1);
             Date date = resultSet.getDate(1);
-            log.info(date.toString());
         }
         return res;
     }
@@ -99,7 +98,7 @@ public class QueryForTransit {
             // step2: 查询最近的短信推送情况
             Date lastPushTime = null;
             ResultSet resSet = statement.executeQuery(SqlConstant.QUERY_LAST_PUSH_TIME);
-            while (resultSet.next()) {
+            while (resSet.next()) {
                 lastPushTime = resSet.getDate(1);
             }
             if (!DateUtils.dateCompare(lastPushTime, oracleSysDate, 20)) {

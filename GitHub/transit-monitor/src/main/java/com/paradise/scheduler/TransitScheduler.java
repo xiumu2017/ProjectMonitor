@@ -23,7 +23,7 @@ public class TransitScheduler {
     @Resource
     private MonitorTools monitorTools;
 
-    @Scheduled(cron = "0 0 17 * * ? ")
+    @Scheduled(cron = "0 0 1/2 * * ? ")
     public void run() {
         monitorTools.run();
     }

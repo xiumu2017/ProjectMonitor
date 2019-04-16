@@ -80,7 +80,9 @@ public class LinuxCmdClient implements CmdClient {
 
     @Override
     public boolean closeClient() {
-        connection.close();
+        if (connection != null) {
+            connection.close();
+        }
         return true;
     }
 

@@ -15,7 +15,7 @@ public class MarkdownMessage implements Message {
 
     private String title;
 
-    private List<String> items = new ArrayList<String>();
+    private List<String> items = new ArrayList<>();
 
     public String getTitle() {
         return title;

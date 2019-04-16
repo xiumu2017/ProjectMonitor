@@ -13,11 +13,11 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class CheckRecord extends BaseDomain {
-    private String id;
     private String projectId;
     private String result;
     private String type;
     private String checkCode;
+    private String projectName;
     private Date createTime;
 
     public CheckRecord() {
@@ -55,7 +55,6 @@ public class CheckRecord extends BaseDomain {
     }
 
     public static class Builder {
-        private String id;
         private String projectId;
         private String result;
         private String type;

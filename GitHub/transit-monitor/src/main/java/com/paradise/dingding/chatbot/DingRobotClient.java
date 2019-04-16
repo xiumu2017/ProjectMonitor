@@ -51,7 +51,13 @@ public class DingRobotClient {
 
     public void send(String tokens, Message message) {
         for (String token : parseToken(tokens)) {
-            this.push(webHookPrefix + token, message);
+            SendResult sendResult = this.push(webHookPrefix + token, message);
+            if (sendResult.isSuccess()) {
+                log.info("dingding push success");
+            } else {
+                log.error("dingding push fail");
+                log.error(sendResult.getErrorMsg());
+            }
         }
     }
 

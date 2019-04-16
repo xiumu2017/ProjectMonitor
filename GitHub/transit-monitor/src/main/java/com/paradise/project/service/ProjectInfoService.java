@@ -69,15 +69,16 @@ public class ProjectInfoService {
     }
 
     /**
-     * 修改项目 是否启用状态
+     * 修改项目 是否启用状态 - 状态切换
      *
-     * @param id     项目id
-     * @param enable 原始状态
+     * @param id 项目id
      * @return 修改结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public R changeEnable(String id, String enable) {
-        if (ProjectInfo.PROJECT_ENABLE.ENABLE.equals(enable)) {
+    public R changeEnable(String id) {
+        ProjectInfo info = projectInfoMapper.select(id);
+        String enable;
+        if (ProjectInfo.PROJECT_ENABLE.ENABLE.equals(info.getEnable())) {
             enable = ProjectInfo.PROJECT_ENABLE.DISABLE;
         } else {
             enable = ProjectInfo.PROJECT_ENABLE.ENABLE;
@@ -218,5 +219,13 @@ public class ProjectInfoService {
 
     public int updateServerStatus(String serverId, String code) {
         return serverInfoMapper.updateStatus(serverId, code);
+    }
+
+    public R delete(String id) {
+        if (projectInfoMapper.delete(id) == 1) {
+            return R.success();
+        } else {
+            return R.error();
+        }
     }
 }

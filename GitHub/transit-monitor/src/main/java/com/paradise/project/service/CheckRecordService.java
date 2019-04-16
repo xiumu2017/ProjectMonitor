@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 巡检记录service
@@ -32,5 +33,9 @@ public class CheckRecordService {
 
     public CheckRecord selectByProjectId(String id) {
         return recordMapper.selectByProjectId(id);
+    }
+
+    public List<CheckRecord> selectByRecord(CheckRecord record){
+        return recordMapper.selectByRecord(record);
     }
 }

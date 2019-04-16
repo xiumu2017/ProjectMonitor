@@ -110,18 +110,25 @@ public class MonitorForTransitByWeb {
     public static MR checkSmsStatus(ProjectInfo project) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String today = sdf.format(new Date());
-        HttpGet get = new HttpGet(getSmsDataUrl(project.getUrl(), today));
+        String url = getSmsDataUrl(project.getUrl(), today);
+        log.info("checkSmsStatus - url: " + url);
+        HttpGet get = new HttpGet(url);
         try {
             HttpResponse response = CLIENT.execute(get);
             String result = getEntityContent(response);
-            JSONObject json = JSON.parseObject(result);
-            log.info(json.toJSONString());
-            long totalCount = json.getLongValue("totalCount");
-            // 今日无数据
-            if (totalCount == 0) {
-                return MR.error(MR.Result_Code.SMS_NO_SEND, "未检测到短信发送记录");
+            if (result.contains("<!DOCTYPE")) {
+                return MR.error(MR.Result_Code.CHECK_ERROR, "web检查记录时出错！");
+            } else {
+
+                JSONObject json = JSON.parseObject(result);
+                log.info(json.toJSONString());
+                long totalCount = json.getLongValue("totalCount");
+                if (totalCount == 0) {
+                    return MR.error(MR.Result_Code.SMS_NO_SEND, "未检测到短信发送记录");
+                }
+                return MR.success("当天发送量：" + totalCount);
             }
-            return MR.success("当天发送量：" + totalCount);
+            // 今日无数据
         } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
             return MR.error(MR.Result_Code.CHECK_ERROR, e.getLocalizedMessage());

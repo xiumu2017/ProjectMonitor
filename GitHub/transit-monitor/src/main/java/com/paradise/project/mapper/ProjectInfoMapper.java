@@ -109,4 +109,13 @@ public interface ProjectInfoMapper {
      */
     @Update("update tm_project set status = #{status} where id = #{id}")
     int updateStatus(String id, String status);
+
+    /**
+     * 删除
+     *
+     * @param id 项目id
+     * @return 删除结果
+     */
+    @Delete("delete from tm_project where id=#{id}")
+    int delete(String id);
 }

@@ -1,10 +1,13 @@
 package com.paradise.monitor;
 
+import com.paradise.dingding.chatbot.message.MarkdownMessage;
+import com.paradise.dingding.chatbot.message.Message;
 import com.paradise.monitor.utils.MonitorForTransitByWeb;
 import com.paradise.oracle.QueryForTransit;
 import com.paradise.project.domain.CheckRecord;
 import com.paradise.project.domain.DbInfo;
 import com.paradise.project.domain.ProjectInfo;
+import com.paradise.project.domain.ServerInfo;
 import com.paradise.project.service.CheckRecordService;
 import com.paradise.project.service.ProjectInfoService;
 import com.paradise.ssh.CmdClients;
@@ -17,6 +20,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -48,54 +54,58 @@ public class MonitorTools {
                 if (!available(projectInfo.getId())) {
                     continue;
                 }
-                String projectName = projectInfo.getName();
-                log.info(projectName + "  start check >>> ");
-                // step: web服务是否正常
-                MR webServerCheckResult = MonitorForTransitByWeb.webServerCheck(projectInfo);
-                DbInfo dbInfo = projectInfoService.getDbInfo(projectInfo.getDbId());
-                if (webServerCheckResult.getCode().equals(MR.Result_Code.NORMAL)) {
-                    // 判断数据库能否直连
-                    boolean dbAccessible = false;
-                    if (projectInfo.getMonitorType().equals(ProjectInfo.MONITOR_TYPE.DB_)) {
-                        String oracleDate;
-                        if (dbInfo != null) {
-                            try {
-                                oracleDate = QueryForTransit.checkAccessible(dbInfo);
-                                if (StringUtils.isNotEmpty(oracleDate)) {
-                                    dbAccessible = true;
-                                }
-                            } catch (SQLException | ClassNotFoundException e) {
-                                log.error(e.getLocalizedMessage(), e);
-                            }
-                        }
-                    }
-                    if (dbAccessible) {
-                        dbCheck(dbInfo, projectInfo);
-                    } else {
-                        // web接口 巡检
-                        MR login = MonitorForTransitByWeb.doLogin(projectInfo);
-                        if (isNormal(login)) {
-                            MR smsResult = MonitorForTransitByWeb.checkSmsStatus(projectInfo);
-                            projectInfoService.updateProjectStatus(projectInfo.getId(), smsResult.getCode());
-                            if (isNormal(smsResult)) {
-                                checkRecordService.insert(new CheckRecord.Builder(projectInfo.getId(), smsResult.getName())
-                                        .checkCode(smsResult.getCode()).build());
-                            } else {
-                                checkRecordService.insert(new CheckRecord.Builder(projectInfo.getId(), smsResult.getName())
-                                        .checkCode(smsResult.getCode()).build());
-                            }
-                        } else {
-                            log.info(projectName + "login fail...");
-                            projectInfoService.updateProjectStatus(projectInfo.getId(), login.getCode());
-                            checkRecordService.insert(new CheckRecord.Builder(projectInfo.getId(), "无法直连数据库巡检，web登录失败！" + login.getName())
-                                    .checkCode(login.getCode()).build());
-                        }
-                    }
-                } else {
-                    dealWebInAccessible(projectInfo);
-                }
+                check(projectInfo);
             }
             log.info(" task finish cost : " + (System.currentTimeMillis() - start) + " ms");
+        }
+    }
+
+    public void check(ProjectInfo projectInfo) {
+        String projectName = projectInfo.getName();
+        log.info(projectName + "  start check >>> ");
+        // step: web服务是否正常
+        MR webServerCheckResult = MonitorForTransitByWeb.webServerCheck(projectInfo);
+        DbInfo dbInfo = projectInfoService.getDbInfo(projectInfo.getDbId());
+        if (webServerCheckResult.getCode().equals(MR.Result_Code.NORMAL)) {
+            // 判断数据库能否直连
+            boolean dbAccessible = false;
+            if (projectInfo.getMonitorType().equals(ProjectInfo.MONITOR_TYPE.DB_)) {
+                String oracleDate;
+                if (dbInfo != null) {
+                    try {
+                        oracleDate = QueryForTransit.checkAccessible(dbInfo);
+                        if (StringUtils.isNotEmpty(oracleDate)) {
+                            dbAccessible = true;
+                        }
+                    } catch (SQLException | ClassNotFoundException e) {
+                        log.error(e.getLocalizedMessage(), e);
+                    }
+                }
+            }
+            if (dbAccessible) {
+                dbCheck(dbInfo, projectInfo);
+            } else {
+                // web接口 巡检
+                MR login = MonitorForTransitByWeb.doLogin(projectInfo);
+                if (isNormal(login)) {
+                    MR smsResult = MonitorForTransitByWeb.checkSmsStatus(projectInfo);
+                    projectInfoService.updateProjectStatus(projectInfo.getId(), smsResult.getCode());
+                    if (isNormal(smsResult)) {
+                        checkRecordService.insert(new CheckRecord.Builder(projectInfo.getId(), smsResult.getName())
+                                .checkCode(smsResult.getCode()).build());
+                    } else {
+                        checkRecordService.insert(new CheckRecord.Builder(projectInfo.getId(), smsResult.getName())
+                                .checkCode(smsResult.getCode()).build());
+                    }
+                } else {
+                    log.info(projectName + "login fail...");
+                    projectInfoService.updateProjectStatus(projectInfo.getId(), login.getCode());
+                    checkRecordService.insert(new CheckRecord.Builder(projectInfo.getId(), "无法直连数据库巡检，web登录失败！" + login.getName())
+                            .checkCode(login.getCode()).build());
+                }
+            }
+        } else {
+            dealWebInAccessible(projectInfo);
         }
     }
 
@@ -125,7 +135,12 @@ public class MonitorTools {
     private void dealWebInAccessible(ProjectInfo projectInfo) {
         projectInfoService.updateProjectStatus(projectInfo.getId(), MR.Result_Code.WEB_INACCESSIBLE);
         log.info(projectInfo.getName() + "Web 无法访问 start Linux check ==========================================");
-        LinuxCmdClient client = CmdClients.createLinuxClient(projectInfoService.getServerInfo(projectInfo.getServerId()));
+        ServerInfo serverInfo = projectInfoService.getServerInfo(projectInfo.getServerId());
+        if (serverInfo == null) {
+            checkRecordService.insert(new CheckRecord.Builder(projectInfo.getId(), "Web 无法访问；缺少服务器信息，无法进行服务器检查").checkCode(MR.Result_Code.CHECK_ERROR).build());
+            return;
+        }
+        LinuxCmdClient client = CmdClients.createLinuxClient(serverInfo);
         try {
             MR mr = client.login();
             if (isNormal(mr)) {
@@ -179,4 +194,62 @@ public class MonitorTools {
     private boolean isNormal(MR mr) {
         return mr.getCode().equals(MR.Result_Code.NORMAL);
     }
+
+    /**
+     * 从巡检记录中合成错误报告 markdown
+     *
+     * @param records 巡检记录
+     * @return 钉钉推送message
+     */
+    public Message getMessage(List<CheckRecord> records) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        String title = simpleDateFormat.format(new Date()) + "巡检结果";
+        // 生成推送的markdown
+        MarkdownMessage markdownMessage = new MarkdownMessage();
+        markdownMessage.setTitle(title);
+        markdownMessage.add(MarkdownMessage.getHeaderText(1, title));
+        List<String> webList = new ArrayList<>();
+        List<String> serverList = new ArrayList<>();
+        List<String> smsList = new ArrayList<>();
+        List<String> list = new ArrayList<>();
+        for (CheckRecord record : records) {
+            String res = MarkdownMessage.getItalicText(record.getProjectName()) + " : " + MarkdownMessage.getBoldText(record.getCheckCode()) + " : " + record.getResult();
+            if (record.getCheckCode().startsWith("WEB")) {
+                webList.add(res);
+            } else if (record.getCheckCode().startsWith("SERVER")) {
+                serverList.add(res);
+            } else if (record.getCheckCode().startsWith("SMS")) {
+                smsList.add(res);
+            } else {
+                list.add(res);
+            }
+        }
+        if (!webList.isEmpty()) {
+            markdownMessage.add(MarkdownMessage.getHeaderText(3, "web 异常："));
+            markdownMessage.add("  ");
+            markdownMessage.add(MarkdownMessage.getOrderListText(webList));
+        }
+        if (!serverList.isEmpty()) {
+            markdownMessage.add(MarkdownMessage.getHeaderText(3, "服务器 异常："));
+            markdownMessage.add("  ");
+            markdownMessage.add(MarkdownMessage.getOrderListText(serverList));
+        }
+
+        if (!smsList.isEmpty()) {
+            markdownMessage.add(MarkdownMessage.getHeaderText(3, "短信发送 异常："));
+            markdownMessage.add("  ");
+            markdownMessage.add(MarkdownMessage.getOrderListText(smsList));
+        }
+
+        if (!list.isEmpty()) {
+            markdownMessage.add(MarkdownMessage.getHeaderText(3, "其它 异常："));
+            markdownMessage.add("  ");
+            markdownMessage.add(MarkdownMessage.getOrderListText(list));
+        }
+        markdownMessage.add("  ");
+        markdownMessage.add(MarkdownMessage.getLinkText("详细信息点击链接查看", "http://192.168.1.134:9528/#/transit/project"));
+        log.info(markdownMessage.toJsonString());
+        return markdownMessage;
+    }
+
 }

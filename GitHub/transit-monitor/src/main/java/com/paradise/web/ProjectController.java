@@ -1,12 +1,16 @@
 package com.paradise.web;
 
+import com.paradise.dingding.chatbot.DingRobotClient;
+import com.paradise.dingding.chatbot.message.Message;
 import com.paradise.monitor.MR;
 import com.paradise.monitor.MonitorTools;
 import com.paradise.monitor.utils.MonitorForTransitByWeb;
 import com.paradise.oracle.QueryForTransit;
+import com.paradise.project.domain.CheckRecord;
 import com.paradise.project.domain.DbInfo;
 import com.paradise.project.domain.ProjectInfo;
 import com.paradise.project.domain.ServerInfo;
+import com.paradise.project.service.CheckRecordService;
 import com.paradise.project.service.ProjectInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -36,6 +40,9 @@ public class ProjectController {
 
     @Resource
     private MonitorTools monitorTools;
+
+    @Resource
+    private CheckRecordService checkRecordService;
 
     /**
      * 查询全部列表
@@ -101,14 +108,26 @@ public class ProjectController {
     /**
      * 修改启用状态
      *
-     * @param id     项目id
-     * @param enable 原状态
+     * @param id 项目id
      * @return 处理结果
      */
     @RequestMapping("/changeEnable")
-    public R changeEnable(String id, String enable) {
-        return projectInfoService.changeEnable(id, enable);
+    public R changeEnable(String id) {
+        return projectInfoService.changeEnable(id);
     }
+
+
+    /**
+     * 删除 - 物理删除
+     *
+     * @param id 项目id
+     * @return 处理结果
+     */
+    @RequestMapping("/delete")
+    public R delete(String id) {
+        return projectInfoService.delete(id);
+    }
+
 
     /**
      * 保存数据库信息
@@ -219,10 +238,29 @@ public class ProjectController {
         return R.error(result.getName());
     }
 
+    @RequestMapping("/check")
+    public R check(ProjectInfo info) {
+        monitorTools.check(info);
+        return R.success();
+    }
+
     @RequestMapping("/startCheck")
     public R startCheck(String token) {
         if ("paradise".equals(token)) {
             monitorTools.run();
+        }
+        return R.success();
+    }
+
+    @RequestMapping("/pushToDing")
+    public R pushToDing() {
+        String webHook = "b2190a6d462ac364424bd9c5c61738c039105d9a1737d97acda1caea290ea134";
+        List<CheckRecord> recordList = checkRecordService.selectByRecord(new CheckRecord());
+        if (!recordList.isEmpty()) {
+            // 生成推送的markdown
+            Message markdownMessage = monitorTools.getMessage(recordList);
+            DingRobotClient client = new DingRobotClient();
+            client.send(webHook, markdownMessage);
         }
         return R.success();
     }
