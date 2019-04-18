@@ -4,7 +4,7 @@ import com.paradise.dingding.chatbot.DingRobotClient;
 import com.paradise.dingding.chatbot.message.Message;
 import com.paradise.monitor.MR;
 import com.paradise.monitor.MonitorTools;
-import com.paradise.monitor.utils.MonitorForTransitByWeb;
+import com.paradise.monitor.MonitorForTransitByWeb;
 import com.paradise.oracle.QueryForTransit;
 import com.paradise.project.domain.CheckRecord;
 import com.paradise.project.domain.DbInfo;
@@ -233,17 +233,29 @@ public class ProjectController {
             if (monitorResult.getCode().equals(MR.Result_Code.NORMAL)) {
                 return R.success(monitorResult.getName());
             }
-            return R.error(result.getName());
+            return R.error(monitorResult.getName());
         }
         return R.error(result.getName());
     }
 
+    /**
+     * 项目巡检
+     *
+     * @param info 项目信息
+     * @return R
+     */
     @RequestMapping("/check")
     public R check(ProjectInfo info) {
-        monitorTools.check(info);
+        monitorTools.check(info, true);
         return R.success();
     }
 
+    /**
+     * 全部巡检
+     *
+     * @param token 验证token
+     * @return R
+     */
     @RequestMapping("/startCheck")
     public R startCheck(String token) {
         if ("paradise".equals(token)) {
@@ -254,7 +266,7 @@ public class ProjectController {
 
     @RequestMapping("/pushToDing")
     public R pushToDing() {
-        String webHook = "b2190a6d462ac364424bd9c5c61738c039105d9a1737d97acda1caea290ea134";
+        String webHook = "c7152d897b4403229406ef47927690a5f7d9167d67bbbb254a61b3df5999f1b9";
         List<CheckRecord> recordList = checkRecordService.selectByRecord(new CheckRecord());
         if (!recordList.isEmpty()) {
             // 生成推送的markdown

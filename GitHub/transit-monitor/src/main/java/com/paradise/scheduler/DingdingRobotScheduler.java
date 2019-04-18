@@ -28,10 +28,10 @@ public class DingdingRobotScheduler {
         this.monitorTools = monitorTools;
     }
 
-    @Scheduled(cron = "0 1/10 * * * ?")
+    @Scheduled(cron = "0 0 8,12,16,19 * * ?")
     public void pushTransitMsg() {
         log.info("start dingding push ...");
-        String webHook = "b2190a6d462ac364424bd9c5c61738c039105d9a1737d97acda1caea290ea134";
+        String webHook = "c7152d897b4403229406ef47927690a5f7d9167d67bbbb254a61b3df5999f1b9";
         List<CheckRecord> recordList = checkRecordService.selectByRecord(new CheckRecord());
         if (!recordList.isEmpty()) {
             // 生成推送的markdown

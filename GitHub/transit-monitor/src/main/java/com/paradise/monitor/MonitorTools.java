@@ -2,7 +2,6 @@ package com.paradise.monitor;
 
 import com.paradise.dingding.chatbot.message.MarkdownMessage;
 import com.paradise.dingding.chatbot.message.Message;
-import com.paradise.monitor.utils.MonitorForTransitByWeb;
 import com.paradise.oracle.QueryForTransit;
 import com.paradise.project.domain.CheckRecord;
 import com.paradise.project.domain.DbInfo;
@@ -50,17 +49,17 @@ public class MonitorTools {
         if (!projectInfoList.isEmpty()) {
             long start = System.currentTimeMillis();
             for (ProjectInfo projectInfo : projectInfoList) {
-                // 判断上次巡检时间 -- 1h以内不再巡检 -- 错误未处理不再巡检
-                if (!available(projectInfo.getId())) {
-                    continue;
-                }
-                check(projectInfo);
+                check(projectInfo, false);
             }
             log.info(" task finish cost : " + (System.currentTimeMillis() - start) + " ms");
         }
     }
 
-    public void check(ProjectInfo projectInfo) {
+    public void check(ProjectInfo projectInfo, boolean isManual) {
+        // 判断上次巡检时间 -- 1h以内不再巡检 -- 错误未处理不再巡检
+        if (!available(projectInfo.getId()) && !isManual) {
+            return;
+        }
         String projectName = projectInfo.getName();
         log.info(projectName + "  start check >>> ");
         // step: web服务是否正常

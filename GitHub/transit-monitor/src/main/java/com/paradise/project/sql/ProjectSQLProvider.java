@@ -30,12 +30,15 @@ public class ProjectSQLProvider {
         if (StringUtils.isNotEmpty(info.getStatus())) {
             sql.append(" and status = '").append(info.getStatus()).append("'");
         }
+        if (info.isHiddenNoCheck()) {
+            sql.append(" and monitor_type != '").append("NO'");
+        }
         sql.append(" order by type,city");
         return sql.toString();
     }
 
     public String selectListForCheck() {
-        return "select * from tm_project where 1=1 and type = '1' and enable = '1'";
+        return "select * from tm_project where 1=1 and type = '1' and enable = '1' and monitor_type != 'NO'";
     }
 
     public String selectByProjectId(String id) {

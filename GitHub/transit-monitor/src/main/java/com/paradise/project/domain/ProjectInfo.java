@@ -30,6 +30,7 @@ public class ProjectInfo extends BaseDomain {
     private String enable;
     private String status;
     private String remark;
+    private boolean hiddenNoCheck;
 
     public enum Type {
         /**
