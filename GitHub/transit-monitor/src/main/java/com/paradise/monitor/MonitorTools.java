@@ -211,44 +211,62 @@ public class MonitorTools {
         List<String> serverList = new ArrayList<>();
         List<String> smsList = new ArrayList<>();
         List<String> list = new ArrayList<>();
+        int count = 1;
         for (CheckRecord record : records) {
-            String res = MarkdownMessage.getItalicText(record.getProjectName()) + " : " + MarkdownMessage.getBoldText(record.getCheckCode()) + " : " + record.getResult();
+            MarkdownMessage child = new MarkdownMessage();
+            child.add(MarkdownMessage.getHeaderText(4, count++ + "." + record.getProjectName()));
+            MarkdownMessage childChild = new MarkdownMessage();
+            childChild.add(MarkdownMessage.getBoldText(record.getCheckCode()) + ": ");
+            childChild.add(record.getResult() + " \n");
+            String remark = projectInfoService.selectById(record.getProjectId()).getRemark();
+            if (StringUtils.isNotEmpty(remark)) {
+                childChild.add(MarkdownMessage.getReferenceText("*备注信息*：" + remark));
+            }
+            child.add(MarkdownMessage.getReferenceText(childChild.getText()));
             if (record.getCheckCode().startsWith("WEB")) {
-                webList.add(res);
+                webList.add(child.getText());
             } else if (record.getCheckCode().startsWith("SERVER")) {
-                serverList.add(res);
+                serverList.add(child.getText());
             } else if (record.getCheckCode().startsWith("SMS")) {
-                smsList.add(res);
+                smsList.add(child.getText());
             } else {
-                list.add(res);
+                list.add(child.getText());
             }
         }
         if (!webList.isEmpty()) {
             markdownMessage.add(MarkdownMessage.getHeaderText(3, "web 异常："));
             markdownMessage.add("  ");
-            markdownMessage.add(MarkdownMessage.getOrderListText(webList));
+            markdownMessage.add(listToString(webList));
         }
         if (!serverList.isEmpty()) {
             markdownMessage.add(MarkdownMessage.getHeaderText(3, "服务器 异常："));
             markdownMessage.add("  ");
-            markdownMessage.add(MarkdownMessage.getOrderListText(serverList));
+            markdownMessage.add(listToString(serverList));
         }
 
         if (!smsList.isEmpty()) {
             markdownMessage.add(MarkdownMessage.getHeaderText(3, "短信发送 异常："));
             markdownMessage.add("  ");
-            markdownMessage.add(MarkdownMessage.getOrderListText(smsList));
+            markdownMessage.add(listToString(smsList));
         }
 
         if (!list.isEmpty()) {
             markdownMessage.add(MarkdownMessage.getHeaderText(3, "其它 异常："));
             markdownMessage.add("  ");
-            markdownMessage.add(MarkdownMessage.getOrderListText(list));
+            markdownMessage.add(listToString(list));
         }
         markdownMessage.add("  ");
         markdownMessage.add(MarkdownMessage.getLinkText("详细信息点击链接查看", "http://192.168.1.134:9528/#/transit/project"));
         log.info(markdownMessage.toJsonString());
         return markdownMessage;
+    }
+
+    private String listToString(List<String> list) {
+        StringBuilder sb = new StringBuilder();
+        for (String s : list) {
+            sb.append(s);
+        }
+        return sb.toString();
     }
 
 }

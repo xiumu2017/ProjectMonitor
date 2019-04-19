@@ -39,7 +39,6 @@ public class QueryForTransit {
         ResultSet resultSet = statement.executeQuery(SqlConstant.QUERY_SYSDATE);
         while (resultSet.next()) {
             res = resultSet.getString(1);
-            Date date = resultSet.getDate(1);
         }
         return res;
     }
@@ -87,25 +86,21 @@ public class QueryForTransit {
         // 建立数据库连接
         Connection connection = getConnection(dbInfo);
         Statement statement = connection.createStatement();
-        Date oracleSysDate = null;
+        Timestamp oracleSysDate = null;
         ResultSet resultSet = statement.executeQuery(SqlConstant.QUERY_SYSDATE);
         while (resultSet.next()) {
-            oracleSysDate = resultSet.getDate(1);
+            oracleSysDate = resultSet.getTimestamp(1);
             log.info("oracleSysDate: " + oracleSysDate);
-            log.info("oracleSysDate-sdf: " + ProjectConstant.SIMPLE_DATE_FORMAT.format(oracleSysDate));
         }
         // step1: 查询系统配置表信息
         SysConfigOracle config = getConfigFromSql(statement);
         if (config != null) {
             // step2: 查询最近的短信推送情况
-            Date lastPushTime = null;
+            Timestamp lastPushTime = null;
             ResultSet resSet = statement.executeQuery(SqlConstant.QUERY_LAST_PUSH_TIME);
             while (resSet.next()) {
-                Timestamp timestamp = resSet.getTimestamp(1);
-                log.info("Timestamp:" + timestamp.toString());
-                lastPushTime = resSet.getDate(1);
+                lastPushTime = resSet.getTimestamp(1);
                 log.info("lastPushTime: " + lastPushTime);
-                log.info("lastPushTime-sdf: " + ProjectConstant.SIMPLE_DATE_FORMAT.format(lastPushTime));
             }
             if (!DateUtils.dateCompare(lastPushTime, oracleSysDate, 20)) {
                 return MR.error(MR.Result_Code.SMS_PUSH_ERROR, "超过20min没有短信推送，上次短信推送时间：" + lastPushTime);
@@ -115,15 +110,14 @@ public class QueryForTransit {
                 Calendar calendar = Calendar.getInstance();
                 // 已到发送时间
                 if (config.getStartHour() != null && calendar.get(Calendar.HOUR) > config.getStartHour()) {
-                    java.util.Date lastSendTime = null;
+                    Timestamp lastSendTime = null;
                     ResultSet lastSendSet = statement.executeQuery(SqlConstant.QUERY_LAST_SEND_TIME);
                     while (lastSendSet.next()) {
-                        lastSendTime = lastSendSet.getDate(1);
+                        lastSendTime = lastSendSet.getTimestamp(1);
                         log.info("lastSendTime: " + lastSendTime);
-                        log.info("lastSendTime-sdf: " + ProjectConstant.SIMPLE_DATE_FORMAT.format(lastSendTime));
                     }
-                    if (DateUtils.dateCompare(lastSendTime, oracleSysDate,20)) {
-                        return MR.error(MR.Result_Code.SMS_NO_SEND, "超过20m无短信发送，上次短信发送时间： " + lastSendTime);
+                    if (!DateUtils.dateCompare(lastSendTime, oracleSysDate, 30)) {
+                        return MR.error(MR.Result_Code.SMS_NO_SEND, "超过30m无短信发送，上次短信发送时间： " + lastSendTime);
                     }
                 }
             }

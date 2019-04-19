@@ -89,10 +89,14 @@ public class MarkdownMessage implements Message {
 
     @Override
     public String toJsonString() {
-        Map<String, Object> result = new HashMap<String, Object>();
+        return JSON.toJSONString(getMap());
+    }
+
+    private Map<String, Object> getMap() {
+        Map<String, Object> result = new HashMap<>();
         result.put("msgtype", "markdown");
 
-        Map<String, Object> markdown = new HashMap<String, Object>();
+        Map<String, Object> markdown = new HashMap<>();
         markdown.put("title", title);
 
         StringBuilder markdownText = new StringBuilder();
@@ -101,7 +105,14 @@ public class MarkdownMessage implements Message {
         }
         markdown.put("text", markdownText.toString());
         result.put("markdown", markdown);
+        return result;
+    }
 
-        return JSON.toJSONString(result);
+    public String getText() {
+        StringBuilder markdownText = new StringBuilder();
+        for (String item : items) {
+            markdownText.append(item).append("\n");
+        }
+        return markdownText.toString();
     }
 }
