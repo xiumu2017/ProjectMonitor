@@ -228,4 +228,8 @@ public class ProjectInfoService {
             return R.error();
         }
     }
+
+    public List<ProjectInfo> selectForExport(ProjectInfo info) {
+        return projectInfoMapper.selectForExport(info);
+    }
 }

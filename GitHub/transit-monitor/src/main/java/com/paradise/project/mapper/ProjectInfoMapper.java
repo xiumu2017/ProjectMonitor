@@ -118,4 +118,13 @@ public interface ProjectInfoMapper {
      */
     @Delete("delete from tm_project where id=#{id}")
     int delete(String id);
+
+    /**
+     * 导出查询
+     *
+     * @param info 查询条件
+     * @return 列表
+     */
+    @SelectProvider(type = ProjectSQLProvider.class, method = "selectForExport")
+    List<ProjectInfo> selectForExport(ProjectInfo info);
 }

@@ -68,7 +68,7 @@ public class MonitorTools {
         if (webServerCheckResult.getCode().equals(MR.Result_Code.NORMAL)) {
             // 判断数据库能否直连
             boolean dbAccessible = false;
-            if (projectInfo.getMonitorType().equals(ProjectInfo.MONITOR_TYPE.DB_)) {
+            if (projectInfo.getMonitorType().equals(ProjectInfo.MONITOR_TYPE.DB.getCode())) {
                 String oracleDate;
                 if (dbInfo != null) {
                     try {

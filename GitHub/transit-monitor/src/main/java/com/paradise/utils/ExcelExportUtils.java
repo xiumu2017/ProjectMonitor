@@ -265,7 +265,7 @@ public class ExcelExportUtils {
 
     /**
      * 导出数据
-     *
+     * TODO 文件名传输的问题
      * @throws IOException throws ioException
      */
     public void exportData() throws IOException {
@@ -280,9 +280,9 @@ public class ExcelExportUtils {
                 fileName = new String(fileName.getBytes(), "ISO8859-1");
             }
             fileName = encodingFileName(fileName);
+            response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
             response.setHeader("content-type", "application/octet-stream;");
             response.setContentType("application/octet-stream");
-            response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
             File file = getFile();
             FileUtils.copyFile(file, response.getOutputStream());
             boolean d = file.delete();

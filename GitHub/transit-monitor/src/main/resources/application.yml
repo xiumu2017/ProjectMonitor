@@ -14,3 +14,9 @@ server:
 mybatis:
   configuration:
     map-underscore-to-camel-case: true # 支持驼峰转换
+
+logging:
+  level:
+    root: info
+  file: 'transit.log'
+  path: ./log

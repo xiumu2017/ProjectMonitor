@@ -32,7 +32,7 @@ public interface ServerInfoMapper {
      * @return 更新结果
      */
     @Update("update tm_server set ip=#{ip},port=#{port},user_name=#{userName},password=#{password},remark=#{remark},status=#{status}," +
-            "enable=#{enable}  where id=#{id}")
+            "enable=#{enable},os=#{os},memory=#{memory},os_version = #{osVersion},type=#{type}  where id=#{id}")
     int update(ServerInfo serverInfo);
 
     /**

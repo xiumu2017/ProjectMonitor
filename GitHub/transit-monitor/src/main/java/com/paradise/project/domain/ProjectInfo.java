@@ -32,6 +32,9 @@ public class ProjectInfo extends BaseDomain {
     private String remark;
     private boolean hiddenNoCheck;
 
+    private String serverOs;
+    private String serverStatus;
+
     public enum Type {
         /**
          *
@@ -185,9 +188,40 @@ public class ProjectInfo extends BaseDomain {
      * 2. web接口调用
      */
     public enum MONITOR_TYPE {
+        /**
+         * 数据库直连
+         */
+        DB("DB", "数据库直连"),
+        /**
+         * web接口调用
+         */
+        WEB("WEB", "web接口调用"),
+        OTHER("OTHER", "其它"),
+        NO("NO", "不监控"),
         ;
-        public static final String DB_ = "DB";
-        public static final String WEB_ = "WEB";
+        private String code;
+        private String name;
+
+        MONITOR_TYPE(String code, String name) {
+            this.code = code;
+            this.name = name;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
     }
 
     /**

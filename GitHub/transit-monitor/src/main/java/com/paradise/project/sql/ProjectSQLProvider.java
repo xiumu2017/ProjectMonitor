@@ -37,6 +37,35 @@ public class ProjectSQLProvider {
         return sql.toString();
     }
 
+
+    public String selectForExport(ProjectInfo info) {
+        StringBuilder sql = new StringBuilder("select tm.*,ts.os serverOs,ts.status serverStatus from tm_project tm left join tm_server ts on ts.id = tm.server_id where 1=1 ");
+        if (StringUtils.isNotEmpty(info.getCity())) {
+            sql.append(" and tm.city = '").append(info.getCity()).append("'");
+        }
+
+        if (StringUtils.isNotEmpty(info.getName())) {
+            sql.append(" and tm.name like '%").append(info.getName()).append("%'");
+        }
+
+        if (StringUtils.isNotEmpty(info.getType())) {
+            sql.append(" and tm.type = '").append(info.getType()).append("'");
+        }
+
+        if (StringUtils.isNotEmpty(info.getEnable())) {
+            sql.append(" and tm.enable = '").append(info.getEnable()).append("'");
+        }
+
+        if (StringUtils.isNotEmpty(info.getStatus())) {
+            sql.append(" and tm.status = '").append(info.getStatus()).append("'");
+        }
+        if (info.isHiddenNoCheck()) {
+            sql.append(" and tm.monitor_type != '").append("NO'");
+        }
+        sql.append(" order by type,city");
+        return sql.toString();
+    }
+
     public String selectListForCheck() {
         return "select * from tm_project where 1=1 and type = '1' and enable = '1' and monitor_type != 'NO'";
     }
