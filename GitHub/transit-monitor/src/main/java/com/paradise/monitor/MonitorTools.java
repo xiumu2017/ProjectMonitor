@@ -156,6 +156,11 @@ public class MonitorTools {
             }
         } catch (IOException e) {
             log.error(e.getLocalizedMessage(), e);
+            // 服务器异常
+            String result = "WEB服务无法访问，服务器SSH无法连接：" + " /r/n" + e.getLocalizedMessage();
+            checkRecordService.insert(new CheckRecord.Builder(projectInfo.getId(), result).checkCode(MR.Result_Code.SERVER_CONNECT_ERROR).build());
+            // 更新服务器状态
+            projectInfoService.updateServerStatus(projectInfo.getServerId(), MR.Result_Code.SERVER_CONNECT_ERROR);
         } finally {
             client.closeClient();
         }
@@ -256,7 +261,7 @@ public class MonitorTools {
             markdownMessage.add(listToString(list));
         }
         markdownMessage.add("  ");
-        markdownMessage.add(MarkdownMessage.getLinkText("详细信息点击链接查看", "http://192.168.1.134:9528/#/transit/project"));
+        markdownMessage.add(MarkdownMessage.getLinkText("详细信息点击链接查看", "http://192.168.1.134/#/transit/project"));
         log.info(markdownMessage.toJsonString());
         return markdownMessage;
     }
