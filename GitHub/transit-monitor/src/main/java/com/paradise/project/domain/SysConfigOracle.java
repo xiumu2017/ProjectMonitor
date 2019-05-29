@@ -63,9 +63,13 @@ public class SysConfigOracle {
     /**
      * 年发送量限额
      */
-    private Integer sendYer;
+    private Integer sendYear;
     /**
      * 发送内容
      */
     private String smsContent;
+    /**
+     * 短信长度
+     */
+    private Integer smsLength;
 }
