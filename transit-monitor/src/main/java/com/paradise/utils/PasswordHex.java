@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Random;
 
 /**
+ * 生成随机密码，用于定期更换Linux登录密码
+ *
  * @author Paradise
  */
 public class PasswordHex {

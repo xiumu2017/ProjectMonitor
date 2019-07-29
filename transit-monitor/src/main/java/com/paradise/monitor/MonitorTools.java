@@ -22,7 +22,9 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.*;
 
 /**
  * @author Paradise
@@ -43,25 +45,42 @@ public class MonitorTools {
     /**
      * 巡检核心方法
      */
-    public void run() {
+    public void run() throws InterruptedException {
         // 查询需要巡检的项目列表
         List<ProjectInfo> projectInfoList = projectInfoService.selectListForCheck();
         if (!projectInfoList.isEmpty()) {
             long start = System.currentTimeMillis();
+
+            //Common Thread Pool
+            ExecutorService pool = new ThreadPoolExecutor(5, 200,
+                    0L, TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<Runnable>(1024), new ThreadPoolExecutor.AbortPolicy());
+
+            CompletionService<Integer> completionService = new ExecutorCompletionService<>(pool);
+
+
             for (ProjectInfo projectInfo : projectInfoList) {
-                check(projectInfo, false);
+
+                completionService.submit(() -> {
+                    log.info(">>> 提交任务：" + projectInfo.getName());
+                    check(projectInfo, false);
+                    return null;
+                });
             }
+
+
             log.info(" task finish cost : " + (System.currentTimeMillis() - start) + " ms");
         }
     }
 
     public void check(ProjectInfo projectInfo, boolean isManual) {
-        // 判断上次巡检时间 -- 1h以内不再巡检 -- 错误未处理不再巡检
-        if (!available(projectInfo.getId()) && !isManual) {
-            return;
-        }
         String projectName = projectInfo.getName();
         log.info(projectName + "  start check >>> ");
+        // 判断上次巡检时间 -- 1h以内不再巡检 -- 错误未处理不再巡检
+        if (!available(projectInfo.getId()) && !isManual) {
+            log.info(" - 不需要巡检 ");
+            return;
+        }
         // step: web服务是否正常
         MR webServerCheckResult = MonitorForTransitByWeb.webServerCheck(projectInfo);
         DbInfo dbInfo = projectInfoService.getDbInfo(projectInfo.getDbId());

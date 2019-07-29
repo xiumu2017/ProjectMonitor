@@ -19,10 +19,5 @@ public class TransitMonitorApplication {
     public static void main(String[] args) {
         SpringApplication.run(TransitMonitorApplication.class, args);
     }
-//
-//    @PostConstruct
-//    void started() {
-//        System.out.println(TimeZone.getDefault());
-//        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-//    }
+
 }

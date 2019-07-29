@@ -25,7 +25,11 @@ public class TransitScheduler {
 
     @Scheduled(cron = "0 0 1/4 * * ? ")
     public void run() {
-        monitorTools.run();
+        try {
+            monitorTools.run();
+        } catch (InterruptedException e) {
+            log.error(e.getLocalizedMessage());
+        }
     }
 
     /**
