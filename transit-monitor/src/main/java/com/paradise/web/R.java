@@ -1,9 +1,14 @@
 package com.paradise.web;
 
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @author Paradise
  */
+@Getter
+@Setter
 public class R<T> {
 
     private Integer code;
@@ -14,66 +19,48 @@ public class R<T> {
     private static final String SUCCESS_MSG = "Operation Success!";
     private static final String SERVER_ERROR = "Server error!";
 
-    private R(Integer code, String msg) {
+    private R(Integer code, String msg, T data) {
         this.code = code;
         this.msg = msg;
-    }
-
-    public Integer getCode() {
-        return code;
-    }
-
-    public void setCode(Integer code) {
-        this.code = code;
-    }
-
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
-
-    public void setData(T data) {
         this.data = data;
     }
 
-    public static R success(String msg) {
-        return new R(SUCCESS_CODE, msg);
+    private R(Integer code, String msg) {
+        this.code = code;
+        this.msg = msg;
+        this.data = null;
     }
 
-    public static R success() {
-        return new R(SUCCESS_CODE, SUCCESS_MSG);
+    public static <T> R<T> success(String msg) {
+        return new R<>(SUCCESS_CODE, msg, null);
     }
 
-    @SuppressWarnings("unchecked")
-    public static R success(String msg, Object data) {
-        R r = new R(SUCCESS_CODE, msg);
+    public static <T> R<T> success() {
+        return new R<>(SUCCESS_CODE, SUCCESS_MSG, null);
+    }
+
+    public static <T> R<T> success(String msg, T data) {
+        R<T> r = new R<>(SUCCESS_CODE, msg);
         r.setData(data);
         return r;
     }
 
-    @SuppressWarnings("unchecked")
-    public static R success(Object data) {
-        R r = new R(SUCCESS_CODE, SUCCESS_MSG);
+    public static <T> R<T> success(T data) {
+        R<T> r = new R<>(SUCCESS_CODE, SUCCESS_MSG);
         r.setData(data);
         return r;
     }
 
-    public static R error(Integer code, String msg) {
-        return new R(code, msg);
+    public static <T> R<T> error(Integer code, String msg) {
+        return new R<>(code, msg);
     }
 
-    public static R error() {
-        return new R(DEFAULT_ERROR_CODE, SERVER_ERROR);
+    public static <T> R<T> error() {
+        return new R<>(DEFAULT_ERROR_CODE, SERVER_ERROR);
     }
 
-    public static R error(String msg) {
-        return new R(DEFAULT_ERROR_CODE, msg);
+    public static <T> R<T> error(String msg) {
+        return new R<>(DEFAULT_ERROR_CODE, msg);
     }
 
-    public T getData() {
-        return data;
-    }
 }

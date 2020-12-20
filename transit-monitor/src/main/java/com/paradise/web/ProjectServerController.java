@@ -1,13 +1,6 @@
 package com.paradise.web;
 
-import com.paradise.dingding.chatbot.DingRobotClient;
-import com.paradise.dingding.chatbot.message.Message;
-import com.paradise.monitor.MR;
-import com.paradise.monitor.MonitorForTransitByWeb;
 import com.paradise.monitor.MonitorTools;
-import com.paradise.oracle.QueryForTransit;
-import com.paradise.project.domain.CheckRecord;
-import com.paradise.project.domain.DbInfo;
 import com.paradise.project.domain.ProjectInfo;
 import com.paradise.project.domain.ServerInfo;
 import com.paradise.project.service.CheckRecordService;
@@ -18,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

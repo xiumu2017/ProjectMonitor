@@ -259,11 +259,7 @@ public class ProjectController {
     @RequestMapping("/startCheck")
     public R startCheck(String token) {
         if ("paradise".equals(token)) {
-            try {
-                monitorTools.run();
-            } catch (InterruptedException e) {
-                log.error(e.getLocalizedMessage());
-            }
+            monitorTools.run();
         }
         return R.success();
     }

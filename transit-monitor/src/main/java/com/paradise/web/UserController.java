@@ -16,7 +16,7 @@ import java.util.Map;
 @CrossOrigin
 @RestController
 @RequestMapping("/user")
-public class UserController {
+public class   UserController {
 
     @RequestMapping("/info")
     public R info(String token) {

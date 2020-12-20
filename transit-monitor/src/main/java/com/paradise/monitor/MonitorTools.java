@@ -45,7 +45,7 @@ public class MonitorTools {
     /**
      * 巡检核心方法
      */
-    public void run() throws InterruptedException {
+    public void run() {
         // 查询需要巡检的项目列表
         List<ProjectInfo> projectInfoList = projectInfoService.selectListForCheck();
         if (!projectInfoList.isEmpty()) {
@@ -54,7 +54,7 @@ public class MonitorTools {
             //Common Thread Pool
             ExecutorService pool = new ThreadPoolExecutor(5, 200,
                     0L, TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<Runnable>(1024), new ThreadPoolExecutor.AbortPolicy());
+                    new LinkedBlockingQueue<>(1024), new ThreadPoolExecutor.AbortPolicy());
 
             CompletionService<Integer> completionService = new ExecutorCompletionService<>(pool);
 
